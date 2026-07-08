@@ -192,11 +192,18 @@
   height: 100vh;
   width: 320px;
   background: #242424;
+  color: rgba(255, 255, 255, 0.87);
   border-left: 1px solid #333;
   box-shadow: -8px 0 32px rgba(0,0,0,0.5);
   padding: 40px 24px 24px;
   z-index: 1000;
   overflow-y: auto;
+}
+
+.side-panel h3,
+.side-panel p strong,
+.side-panel .recommendations > strong {
+  color: #278DF4;
 }
 
 @keyframes slideIn {
@@ -271,4 +278,36 @@
 .result h2{
   user-select: none;
   color: #000000;
+}
+
+@media (prefers-color-scheme: light) {
+  .side-panel {
+    background: #f5f7fa;
+    color: #26313f;
+    border-left: 1px solid #dde3ea;
+    box-shadow: -8px 0 32px rgba(0, 0, 0, 0.15);
+  }
+
+  .side-panel-close {
+    color: #7a8694;
+  }
+  .side-panel-close:hover {
+    color: #26313f;
+  }
+
+  .side-panel .recommendations {
+    color: #26313f;
+  }
+
+  .diagnosis-badge.healthy {
+    background: #e6f7e9;
+    color: #1f9d3f;
+    border: 1px solid #1f9d3f;
+  }
+
+  .diagnosis-badge.sick {
+    background: #fdeaea;
+    color: #d6473f;
+    border: 1px solid #d6473f;
+  }
 }
