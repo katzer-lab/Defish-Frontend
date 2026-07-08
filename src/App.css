@@ -34,23 +34,29 @@
   display: inline-block;
 }
 
-.annotated-image {
+.image-wrapper img {
+  max-width: 800px;   /* или любое нужное значение */
+  max-height: 600px;
+  width: 100%;
+  height: auto;
   display: block;
-  max-width: 100%;
 }
 
 .overlay {
   position: absolute;
   top: 0;
   left: 0;
-  pointer-events: none; /* важно */
-  width: 100%;
-  height: 100%;
+  pointer-events: none; /* чтобы клики проходили к rect */
 }
 
-/* разрешаем клики только на rect */
 .overlay rect {
-  pointer-events: all;
+  pointer-events: all; /* но rect-ам разрешаем */
+}
+
+.annotated-image {
+  display: block;
+  max-width: 100%;
+  user-select: none;
 }
 
 .image-section {
@@ -58,6 +64,7 @@
   padding: 15px;
   background: #f8f9fa;
   border-radius: 8px;
+  user-select: none;
 }
 
 .image-section h3 {
@@ -176,4 +183,92 @@
 
 .error {
   color: red;
+}
+
+.side-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 320px;
+  background: #242424;
+  border-left: 1px solid #333;
+  box-shadow: -8px 0 32px rgba(0,0,0,0.5);
+  padding: 40px 24px 24px;
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+.side-panel-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 20px;
+  cursor: pointer;
+}
+.side-panel-close:focus{
+  outline: none;
+ }
+.side-panel-close:hover { color: #fff; }
+
+.diagnosis-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-weight: bold;
+  margin: 12px 0;
+}
+
+.diagnosis-badge.healthy {
+  background: #1a3a1a;
+  color: lime;
+  border: 1px solid lime;
+}
+
+.diagnosis-badge.sick {
+  background: #3a1a1a;
+  color: #ff6b6b;
+  border: 1px solid #ff6b6b;
+}
+
+.diagnosis-img.healthy {
+  border: 1px solid lime;
+}
+
+.diagnosis-img.sick {
+  border: 1px solid #ff6b6b;
+}
+
+.recommendations {
+  margin-top: 16px;
+  line-height: 1.6;
+  color: #ffffff;
+}
+
+.resize-handle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  cursor: col-resize;
+  background: #278ef429;
+  transition: background 0.2s;
+}
+
+.resize-handle:hover {
+  background: #278DF4;
+}
+
+.result h2{
+  user-select: none;
+  color: #000000;
 }

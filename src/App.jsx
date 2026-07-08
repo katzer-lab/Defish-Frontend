@@ -12,11 +12,17 @@ function App() {
   const [taskId, setTaskId] = useState(null);
   const [isCanceled, setIsCanceled] = useState(false);
   const imgRef = useRef(null);
+  const [selectedDet, setSelectedDet] = useState(null);
   const [imgSize, setImgSize] = useState({ width: 0, height: 0 });
   const [imgNaturalSize, setImgNaturalSize] = useState({
     width: 0,
     height: 0
   });
+  const [panelWidth, setPanelWidth] = useState(320);
+  const resizing = useRef(false);
+  const startX = useRef(0);
+  const startWidth = useRef(0);
+  const [croppedImage, setCroppedImage] = useState(null);
 
   const backend_ip = import.meta.env.VITE_API_URL;
 
@@ -32,32 +38,67 @@ function App() {
       ? imgSize.height / imgNaturalSize.height
       : 1;
 
-  useEffect(() => {
-    if (result) {
-      console.group("📐 Debug Scaling");
-      console.log("Оригинал (ML):", { 
-        w: result.image_width, 
-        h: result.image_height 
-      });
-      console.log("На экране (UI):", { 
-        w: imgSize.width, 
-        h: imgSize.height 
-      });
-      console.log("Коэффициенты:", { 
-        scaleX: scaleX.toFixed(4), 
-        scaleY: scaleY.toFixed(4) 
-      });
-      
-      if (result.detections?.length > 0) {
-        const d = result.detections[0].bbox;
-        console.log("Пример bbox (первый):", {
-          raw: d,
-          scaled: [d[0] * scaleX, d[1] * scaleY, d[2] * scaleX, d[3] * scaleY]
-        });
-      }
-      console.groupEnd();
-    }
-  }, [imgSize, result, scaleX, scaleY]);
+    const onResizeMouseDown = (e) => {
+  resizing.current = true;
+  startX.current = e.clientX;
+  startWidth.current = panelWidth;
+  e.preventDefault();
+};
+
+const handleDetClick = (det) => {
+  setSelectedDet(det);
+
+  const img = imgRef.current;
+  if (!img) return;
+
+  const canvas = document.createElement('canvas');
+  
+  // координаты в натуральных пикселях
+  const x = det.x_min;
+  const y = det.y_min;
+  const w = det.x_max - det.x_min;
+  const h = det.y_max - det.y_min;
+
+  canvas.width = w;
+  canvas.height = h;
+
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, x, y, w, h, 0, 0, w, h);
+
+  setCroppedImage(canvas.toDataURL('image/jpeg'));
+};
+
+useEffect(() => {
+  const onMouseMove = (e) => {
+    if (!resizing.current) return;
+    const delta = startX.current - e.clientX; // тянем влево = увеличиваем
+    const newWidth = Math.min(800, Math.max(200, startWidth.current + delta));
+    setPanelWidth(newWidth);
+  };
+  const onMouseUp = () => { resizing.current = false; };
+
+  window.addEventListener('mousemove', onMouseMove);
+  window.addEventListener('mouseup', onMouseUp);
+  return () => {
+    window.removeEventListener('mousemove', onMouseMove);
+    window.removeEventListener('mouseup', onMouseUp);
+  };
+}, []);
+
+useEffect(() => {
+  const img = imgRef.current;
+  if (!img) return;
+
+  const observer = new ResizeObserver(() => {
+    setImgSize({
+      width: img.clientWidth,
+      height: img.clientHeight,
+    });
+  });
+
+  observer.observe(img);
+  return () => observer.disconnect();
+}, [result]);
 
 
   // Функция polling
@@ -102,6 +143,8 @@ function App() {
     setError(null);
     setResult(null);
     setTaskId(null);
+    setSelectedDet(null);
+    setCroppedImage(null); 
 
     const formData = new FormData();
     formData.append('image', file);
@@ -163,7 +206,7 @@ function App() {
   setResult(null);
 };
 
-
+console.log("RESULT:", JSON.stringify(result, null, 2));
   return (
     <div className="app-shell">
       <div className="lightfall-bg">
@@ -211,13 +254,14 @@ function App() {
 
       {error && <p className="error">{error}</p>}
 
+
       {result && !result.error && result.status !== 'canceled' &&(
         <div className="result">
           <h2>Результат анализа:</h2>
           {/* <p><strong>Диагноз:</strong> {result.diagnosis}</p>
           <p><strong>Вероятность:</strong> {(result.confidence * 100).toFixed(1)}%</p>
           <p><strong>Рекомендации:</strong> {result.recommendations}</p> */}
-
+   <div className="result-content">
           {result.original_image && (
           <div className="image-wrapper">
             <img
@@ -225,23 +269,28 @@ function App() {
               src={`data:image/jpeg;base64,${result.original_image}`}
               onLoad={(e) => {
                 const img = e.target;
-
-                setImgSize({
-                  width: img.clientWidth,
-                  height: img.clientHeight,
-                });
-
                 setImgNaturalSize({
                   width: img.naturalWidth,
                   height: img.naturalHeight,
                 });
+                // clientWidth/Height уже корректны после onLoad с CSS max-width
+                setImgSize({
+                  width: img.clientWidth,
+                  height: img.clientHeight,
+                });
               }}
+              style={{ maxWidth: '800px', maxHeight: '600px', width: '100%', height: 'auto' }}
             />
             <svg className="overlay"
                 width={imgSize.width}
                 height={imgSize.height}>
               {result.detections?.map((det, i) => {
-                const [x1, y1, x2, y2] = det.bbox;
+                const x1 = det.x_min ?? det.bbox?.[0] ?? 0;
+                const y1 = det.y_min ?? det.bbox?.[1] ?? 0;
+                const x2 = det.x_max ?? det.bbox?.[2] ?? 0;
+                const y2 = det.y_max ?? det.bbox?.[3] ?? 0;
+                const isHealthy = det.classification_class === 'healthy';
+                const strokeColor = isHealthy ? 'lime' : 'red';
 
                 return (
                   <rect
@@ -251,22 +300,47 @@ function App() {
                     width={(x2 - x1) * scaleX}
                     height={(y2 - y1) * scaleY}
                     fill="transparent"
-                    stroke="red"
+                    stroke={strokeColor}
                     strokeWidth="2"
                     style={{ cursor: "pointer" }}
-                    onClick={() => {
-                      console.log("CLICK:", det);
-                      console.log("bbox raw:", det.bbox);
-                      
-                      alert(`${det.class} (${(det.det_confidence * 100).toFixed(1)}%)`);
-                    }}
+                    onClick={() => handleDetClick(det)}
                   />
                 );
               })}
             </svg>
           </div>
           )}
+      {selectedDet && (
+        <div className="side-panel" style={{ width: panelWidth }}>
+          <div className="resize-handle" onMouseDown={onResizeMouseDown} />
+          <button className="side-panel-close" onClick={() => setSelectedDet(null)}>✕</button>
+          <h3>Диагностика</h3>
+          {croppedImage && (
+            <img
+              className={`diagnosis-img ${selectedDet.classification_class === 'healthy' ? 'healthy' : 'sick'}`}
+              src={croppedImage}
+              style={{
+                width: '100%',
+                borderRadius: '8px',
+                marginBottom: '16px',
+                maxHeight: '300px',
+                maxWidth: '100%',
+                objectFit: 'contain',
+              }}
+            />
+          )}
+          <div className={`diagnosis-badge ${selectedDet.classification_class === 'healthy' ? 'healthy' : 'sick'}`}>
+            {selectedDet.classification_class === 'healthy' ? 'Здоров' : `${selectedDet.classification_class}`}
+          </div>
+          <p><strong>Уверенность:</strong> {(selectedDet.classification_confidence * 100).toFixed(1)}%</p>
+          <div className="recommendations">
+            <strong>Рекомендации:</strong>
+            <p>{selectedDet.recommendations}</p>
+          </div>
         </div>
+      )}
+        </div>
+      </div>
       )}
 
       {result && result.error && <p className="error">{result.error}</p>}
