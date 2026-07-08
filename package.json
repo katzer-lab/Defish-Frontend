@@ -1,17 +1,19 @@
 {
-  "name": "fish-guard-frontend",
+  "name": "defish-frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "start": "HOST=0.0.0.0 react-scripts start",
-    "dev": "HOST=0.0.0.0 vite",
+    "dev": "cross-env HOST=0.0.0.0 vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
     "axios": "^1.13.2",
+    "cross-env": "^10.1.0",
+    "ogl": "^1.0.11",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

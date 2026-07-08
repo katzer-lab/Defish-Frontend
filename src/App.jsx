@@ -1,6 +1,7 @@
 // App.jsx
 import { useRef, useState, useEffect } from 'react';
 import axios from 'axios';
+import Lightfall from './Lightfall';
 import './App.css';
 
 function App() {
@@ -17,15 +18,19 @@ function App() {
     height: 0
   });
 
-const scaleX =
-  imgNaturalSize.width
-    ? imgSize.width / imgNaturalSize.width
-    : 1;
+  const backend_ip = import.meta.env.VITE_API_URL;
 
-const scaleY =
-  imgNaturalSize.height
-    ? imgSize.height / imgNaturalSize.height
-    : 1;
+  console.log("ENV:", import.meta.env);
+  console.log("API:", import.meta.env.VITE_API_URL);
+  const scaleX =
+    imgNaturalSize.width
+      ? imgSize.width / imgNaturalSize.width
+      : 1;
+
+  const scaleY =
+    imgNaturalSize.height
+      ? imgSize.height / imgNaturalSize.height
+      : 1;
 
   useEffect(() => {
     if (result) {
@@ -60,18 +65,18 @@ const scaleY =
     let attempts = 0;
     while (attempts < maxAttempts) {
       try {
-        const response = await axios.get(`http://45.90.217.192:8000/analyze-result/${task_id}`);
+        const response = await axios.get(`${backend_ip}/analyze-result/${task_id}`);
         const data = response.data;
 
-      if (data.status === 'canceled') {
+      if (data.status === 'canceled'){ 
         console.log("Опрос остановлен: задача отменена сервером");
         return data; // ПРЕРЫВАЕМ ЦИКЛ ЗДЕСЬ
       }
 
-        if (!data.status || data.status === 'done') {
-          // Результат готов
-          return data;
-        }
+          if (!data.status || data.status === 'done') {
+            // Результат готов
+            return data;
+          }
 
         // if (data.status === 'processing') {
           // Ждем и пробуем снова
@@ -104,7 +109,7 @@ const scaleY =
     try {
       // 1️⃣ Отправляем POST-запрос на анализ
       const task_response = await axios.post(
-        'http://45.90.217.192:8000/analyze',
+        `${backend_ip}/analyze`,
         formData
       );
 
@@ -147,7 +152,7 @@ const scaleY =
 
   try {
     await axios.post(
-      `http://45.90.217.192:8000/cancel/${taskId}`
+      `${backend_ip}/cancel/${taskId}`
     );
   } catch (e) {
     console.error(e);
@@ -160,8 +165,28 @@ const scaleY =
 
 
   return (
-    <div className="app">
-      <h1>🐟 Fish-Guard</h1>
+    <div className="app-shell">
+      <div className="lightfall-bg">
+        <Lightfall
+          colors={['#A6C8FF', '#5227FF', '#FF9FFC']}
+          backgroundColor="#0A29FF"
+          speed={0.5}
+          streakCount={1}
+          streakWidth={0.2}
+          streakLength={1}
+          glow={1}
+          density={0.3}
+          twinkle={1}
+          zoom={1}
+          backgroundGlow={0.5}
+          opacity={1}
+          mouseInteraction
+          mouseStrength={1}
+          mouseRadius={0.1}
+        />
+      </div>
+      <div className="app">
+      <h1>🐟 Defish</h1>
       
   <form onSubmit={handleUpload} className="upload-form">
   <input 
@@ -245,6 +270,7 @@ const scaleY =
       )}
 
       {result && result.error && <p className="error">{result.error}</p>}
+      </div>
     </div>
   );
 }
