@@ -2,6 +2,7 @@
 
 .app-shell {
   position: relative;
+  width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
   background-color: #242424;
@@ -75,7 +76,8 @@
 .app {
   display: grid;
   justify-items: center;
-  max-width: min(800px, 85vw);
+  width: 100%;
+  max-width: min(800px, 92vw);
   margin: 0 auto;
   padding: 1.25rem;
   font-family: Arial, sans-serif;
@@ -83,34 +85,63 @@
 }
 
 .upload-form {
+  width: auto;
+  max-width: 100%;
   margin: 1.25rem 0;
   padding: 1.25rem;
   border: 0.125rem dashed #278DF4;
   border-radius: 0.5rem;
   display: flex;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 0.625rem;
+  justify-content: center;
+  gap: 1rem;
 }
 
-.upload-form input {
-  margin-right: 0.625rem;
-  font-size: 1rem;
-}
-
-.upload-form button {
-  background: #278DF4;
-  color: white;
+.icon-btn {
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  min-width: 3rem;
+  min-height: 3rem;
+  padding: 0;
   border: none;
-  padding: 0.625rem 1.25rem;
-  border-radius: 0.25rem;
+  border-radius: 50%;
+  background: #6b6b6b;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
   cursor: pointer;
-  font-size: 1rem;
+  transition: background 0.2s;
 }
 
-.upload-form button:disabled {
-  background: #ccc;
-  color: #666;
+.icon-btn:hover {
+  background: #7d7d7d;
+}
+
+.icon-btn.submit-btn:disabled {
+  background: #4a4a4a;
+  color: #8a8a8a;
   cursor: not-allowed;
+}
+
+.icon-btn .icon {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+
+.icon-btn.submit-btn .triangle-icon {
+  margin-left: 0.125rem;
+}
+
+.file-thumb {
+  flex-shrink: 0;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 0.75rem;
+  object-fit: cover;
 }
 
 .cancel-container {
@@ -167,7 +198,8 @@
 }
 
 .result {
-  max-width: 70vw;
+  width: 100%;
+  max-width: 100%;
   margin-top: 1.25rem;
   padding: 0.9375rem;
   background: #ffffff;
@@ -191,6 +223,7 @@
   right: 0;
   height: 100vh;
   width: 320px;
+  max-width: 100vw;
   background: #242424;
   color: rgba(255, 255, 255, 0.87);
   border-left: 1px solid #333;
@@ -198,6 +231,12 @@
   padding: 40px 24px 24px;
   z-index: 1000;
   overflow-y: auto;
+}
+
+@media (max-width: 480px) {
+  .side-panel {
+    width: 100vw;
+  }
 }
 
 .side-panel h3,

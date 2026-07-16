@@ -23,6 +23,7 @@ function App() {
   const startX = useRef(0);
   const startWidth = useRef(0);
   const [croppedImage, setCroppedImage] = useState(null);
+  const [filePreviewUrl, setFilePreviewUrl] = useState(null);
 
   const backend_ip = import.meta.env.VITE_API_URL;
 
@@ -84,6 +85,16 @@ useEffect(() => {
     window.removeEventListener('mouseup', onMouseUp);
   };
 }, []);
+
+useEffect(() => {
+  if (!file) {
+    setFilePreviewUrl(null);
+    return;
+  }
+  const url = URL.createObjectURL(file);
+  setFilePreviewUrl(url);
+  return () => URL.revokeObjectURL(url);
+}, [file]);
 
 useEffect(() => {
   const img = imgRef.current;
@@ -232,15 +243,27 @@ console.log("RESULT:", JSON.stringify(result, null, 2));
       <h1>🐟 Defish</h1>
       
   <form onSubmit={handleUpload} className="upload-form">
-  <input 
-    type="file" 
-    accept="image/*"
-    onChange={(e) => setFile(e.target.files[0])} 
-  />
+  <label className="icon-btn file-btn" title="Выбрать файл">
+    <input
+      type="file"
+      accept="image/*"
+      onChange={(e) => setFile(e.target.files[0])}
+      hidden
+    />
+    <svg viewBox="0 0 24 24" className="icon" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95l-9.19 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  </label>
+
+  {filePreviewUrl && (
+    <img src={filePreviewUrl} alt="" className="file-thumb" />
+  )}
 
   {!loading ? (
-    <button type="submit" disabled={!file}>
-      Диагностировать
+    <button type="submit" className="icon-btn submit-btn" disabled={!file} title="Диагностировать">
+      <svg viewBox="0 0 24 24" className="icon triangle-icon" fill="currentColor">
+        <path d="M8 5v14l11-7z"/>
+      </svg>
     </button>
   ) : (
     <div className="cancel-container">
