@@ -91,9 +91,36 @@ useEffect(() => {
     setFilePreviewUrl(null);
     return;
   }
-  const url = URL.createObjectURL(file);
-  setFilePreviewUrl(url);
-  return () => URL.revokeObjectURL(url);
+
+  let objectUrl = null;
+  let cancelled = false;
+
+  const showPreview = (blob) => {
+    if (cancelled) return;
+    objectUrl = URL.createObjectURL(blob);
+    setFilePreviewUrl(objectUrl);
+  };
+
+  const isHeic = /image\/hei(c|f)/i.test(file.type) || /\.hei[cf]$/i.test(file.name);
+
+  if (isHeic) {
+    // Браузеры (кроме Safari) не умеют декодировать HEIC/HEIF в <img>,
+    // поэтому для превью конвертируем в JPEG на клиенте.
+    import('heic2any')
+      .then(({ default: heic2any }) => heic2any({ blob: file, toType: 'image/jpeg', quality: 0.7 }))
+      .then((converted) => showPreview(Array.isArray(converted) ? converted[0] : converted))
+      .catch((err) => {
+        console.error('Не удалось подготовить превью HEIC:', err);
+        if (!cancelled) setFilePreviewUrl(null);
+      });
+  } else {
+    showPreview(file);
+  }
+
+  return () => {
+    cancelled = true;
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+  };
 }, [file]);
 
 useEffect(() => {
