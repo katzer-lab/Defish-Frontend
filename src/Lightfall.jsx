@@ -276,7 +276,10 @@ const Lightfall = ({
       }
     };
     if (mouseInteraction) {
+      // pointermove не стреляет на обычный тап без свайпа, поэтому
+      // pointerdown нужен отдельно, чтобы пятно реагировало на тач.
       window.addEventListener('pointermove', onPointerMove, { passive: true });
+      window.addEventListener('pointerdown', onPointerMove, { passive: true });
     }
 
     const loop = t => {
@@ -308,7 +311,10 @@ const Lightfall = ({
 
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      if (mouseInteraction) window.removeEventListener('pointermove', onPointerMove);
+      if (mouseInteraction) {
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerdown', onPointerMove);
+      }
       ro.disconnect();
       if (canvas.parentElement === container) {
         container.removeChild(canvas);

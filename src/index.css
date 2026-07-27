@@ -31,7 +31,6 @@ a:hover {
 
 html {
   background-color: #242424;
-  overscroll-behavior-y: none;
   overflow-x: hidden;
 }
 

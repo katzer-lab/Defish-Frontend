@@ -24,6 +24,7 @@ function App() {
   const startWidth = useRef(0);
   const [croppedImage, setCroppedImage] = useState(null);
   const [filePreviewUrl, setFilePreviewUrl] = useState(null);
+  const [uploadFile, setUploadFile] = useState(null);
 
   const backend_ip = import.meta.env.VITE_API_URL;
 
@@ -89,32 +90,40 @@ useEffect(() => {
 useEffect(() => {
   if (!file) {
     setFilePreviewUrl(null);
+    setUploadFile(null);
     return;
   }
 
   let objectUrl = null;
   let cancelled = false;
 
-  const showPreview = (blob) => {
-    if (cancelled) return;
-    objectUrl = URL.createObjectURL(blob);
-    setFilePreviewUrl(objectUrl);
-  };
-
   const isHeic = /image\/hei(c|f)/i.test(file.type) || /\.hei[cf]$/i.test(file.name);
 
   if (isHeic) {
-    // Браузеры (кроме Safari) не умеют декодировать HEIC/HEIF в <img>,
-    // поэтому для превью конвертируем в JPEG на клиенте.
-    import('heic2any')
-      .then(({ default: heic2any }) => heic2any({ blob: file, toType: 'image/jpeg', quality: 0.7 }))
-      .then((converted) => showPreview(Array.isArray(converted) ? converted[0] : converted))
+    // Браузеры (кроме Safari) не умеют декодировать HEIC/HEIF в <img>, а бэкенд
+    // не всегда умеет декодировать HEIC вовсе — поэтому конвертируем в JPEG на
+    // клиенте один раз и используем этот файл и для превью, и для отправки на анализ.
+    import('heic-to')
+      .then(({ heicTo }) => heicTo({ blob: file, type: 'image/jpeg', quality: 0.92 }))
+      .then((converted) => {
+        if (cancelled) return;
+        const jpegName = file.name.replace(/\.hei[cf]$/i, '.jpg') || 'converted.jpg';
+        const jpegFile = new File([converted], jpegName, { type: 'image/jpeg' });
+        setUploadFile(jpegFile);
+        objectUrl = URL.createObjectURL(jpegFile);
+        setFilePreviewUrl(objectUrl);
+      })
       .catch((err) => {
-        console.error('Не удалось подготовить превью HEIC:', err);
-        if (!cancelled) setFilePreviewUrl(null);
+        console.error('Не удалось конвертировать HEIC:', err);
+        if (!cancelled) {
+          setFilePreviewUrl(null);
+          setUploadFile(null);
+        }
       });
   } else {
-    showPreview(file);
+    setUploadFile(file);
+    objectUrl = URL.createObjectURL(file);
+    setFilePreviewUrl(objectUrl);
   }
 
   return () => {
@@ -174,7 +183,7 @@ useEffect(() => {
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!file) return;
+    if (!uploadFile) return;
 
     setIsCanceled(false);
     setLoading(true);
@@ -182,10 +191,10 @@ useEffect(() => {
     setResult(null);
     setTaskId(null);
     setSelectedDet(null);
-    setCroppedImage(null); 
+    setCroppedImage(null);
 
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append('image', uploadFile);
 
     try {
       // 1️⃣ Отправляем POST-запрос на анализ
@@ -287,7 +296,7 @@ console.log("RESULT:", JSON.stringify(result, null, 2));
   )}
 
   {!loading ? (
-    <button type="submit" className="icon-btn submit-btn" disabled={!file} title="Диагностировать">
+    <button type="submit" className="icon-btn submit-btn" disabled={!uploadFile} title="Диагностировать">
       <svg viewBox="0 0 24 24" className="icon triangle-icon" fill="currentColor">
         <path d="M8 5v14l11-7z"/>
       </svg>
