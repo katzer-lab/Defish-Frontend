@@ -97,6 +97,10 @@ useEffect(() => {
   let objectUrl = null;
   let cancelled = false;
 
+  // Сбрасываем сразу, иначе пока новый HEIC асинхронно конвертируется,
+  // кнопка анализа остаётся активной со старым uploadFile от предыдущего файла.
+  setUploadFile(null);
+
   const isHeic = /image\/hei(c|f)/i.test(file.type) || /\.hei[cf]$/i.test(file.name);
 
   if (isHeic) {
