@@ -1,0 +1,21 @@
+# nginx/fish-demo.conf.template in a container (nginx:alpine 1.31.6, host network), docs/capture/nginx-check.sh, 2026-10-04.
+# The page is the production build; the API behind /api/ is the backend stack (published on 127.0.0.1:8001). "photo" = random bytes with a .jpg name:
+# the API accepts any file up to its limit of 10 MB.
+##### old (the template as it was in the repository)
+GET /                : 200
+GET /some/route      : 200 (served the page)
+GET /api/            : HTTP 502 Bad Gateway          # proxy_pass http://localhost:8000/, nothing listens there: the backend publishes 8001
+POST 0.8 MB photo    : 502
+POST 2 MB photo      : 413                           # nginx refuses bodies over its default 1 MB before the proxy is tried
+##### old_port_only (as it was, only the proxy port changed to 8001)
+GET /                : 200
+GET /some/route      : 200 (served the page)
+GET /api/            : {"message":"Defish API is running"}  [HTTP 200]
+POST 0.8 MB photo    : 200
+POST 2 MB photo      : 413                           # still refused by nginx, the API never saw the request
+##### new (the template now: port 8001, client_max_body_size 12m)
+GET /                : 200
+GET /some/route      : 200 (served the page)
+GET /api/            : {"message":"Defish API is running"}  [HTTP 200]
+POST 0.8 MB photo    : 200
+POST 2 MB photo      : 200

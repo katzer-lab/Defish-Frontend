@@ -1,0 +1,5 @@
+# A real HEIC file through the page (docs/capture/heic.mjs), 2026-10-04.
+# aquarium.heic was made from the synthetic picture with pillow-heif (ftypheic brand, 29,135 bytes). The page converts it with heic-to,
+# uploads the result, and the backend's task metadata (Redis key task_metadata:<id>) shows what it received:
+{"chosenFile":"aquarium.heic","uploadedAs":{"filename":"aquarium.jpg","content_type":"image/jpeg"}}
+# the page showed the thumbnail, the analysis returned and the boxes were drawn.

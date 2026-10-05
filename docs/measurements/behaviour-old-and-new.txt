@@ -1,0 +1,124 @@
+# What the page does in six situations, before and after the fixes. 2026-10-04.
+# Chrome (headless, via playwright-core) against Vite dev servers: OLD = the client at commit 91b9954, NEW = this working tree;
+# the backend is the docker-compose stack of fish-demo_backend with the MOCK inference service (MOCK_USE_LAYOUT=1, MOCK_DELAY_SECONDS=3).
+# Script: docs/capture/behaviour.mjs. Every scenario is one run. "requestsForResults" = GET /analyze-result/... requests the page sent;
+# "consoleCharacters" = text the page wrote to the browser console. The photo is the 23 KB synthetic picture.
+#
+#   normal                         upload, wait for the boxes
+#   analysis_failed_on_the_server  the inference service answers 500 (mock switch "broken"): the API reports status "failed"
+#   file_over_the_limit_413        an 11 MB file; the API refuses with 413 (limit 10 MB)
+#   api_dies_while_polling         the API container is killed 0.8 s after the upload; the page keeps polling
+#   cancel_during_analysis         the cancel button 1.5 s into a 3 s analysis; requests are counted after the click
+#   api_address_not_configured     a dev server started without VITE_API_URL
+
+######## OLD (commit 91b9954)
+{
+ "normal": {
+  "boxesDrawn": 4,
+  "requestsForResults": 1,
+  "consoleCharacters": 138393,
+  "uploadWentTo": "<origin>/analyze",
+  "seconds": 1.9
+ },
+ "analysis_failed_on_the_server": {
+  "errorShown": false,
+  "secondsUntilError": null,
+  "errorText": "",
+  "spinnerAtEnd": true,
+  "requestsForResults": 25,
+  "consoleCharacters": 1329,
+  "uploadWentTo": "<origin>/analyze",
+  "seconds": 25.8
+ },
+ "file_over_the_limit_413": {
+  "errorText": "Request failed with status code 413",
+  "spinnerAtEnd": false,
+  "requestsForResults": 0,
+  "consoleCharacters": 1625,
+  "uploadWentTo": "<origin>/analyze",
+  "seconds": 1.1
+ },
+ "api_dies_while_polling": {
+  "errorShown": true,
+  "secondsUntilError": 1.4,
+  "requestsWhileApiWasDown": 932,
+  "errorText": "Превышено время ожидания результата",
+  "spinnerAtEnd": false,
+  "requestsForResults": 1000,
+  "consoleCharacters": 454290,
+  "uploadWentTo": "<origin>/analyze",
+  "seconds": 9.8
+ },
+ "cancel_during_analysis": {
+  "noteShown": false,
+  "requestsForResultsAfterCancel": 1,
+  "resultShown": false,
+  "requestsForResults": 3,
+  "consoleCharacters": 2049,
+  "uploadWentTo": "<origin>/analyze",
+  "seconds": 6.5
+ },
+ "api_address_not_configured": {
+  "errorText": "Request failed with status code 404",
+  "requestsForResults": 0,
+  "consoleCharacters": 1490,
+  "uploadWentTo": "<origin>/undefined/analyze",
+  "seconds": 1.1
+ }
+}
+
+######## NEW (this working tree)
+{
+ "normal": {
+  "boxesDrawn": 4,
+  "requestsForResults": 1,
+  "consoleCharacters": 158,
+  "uploadWentTo": "<origin>/analyze",
+  "seconds": 0.5
+ },
+ "analysis_failed_on_the_server": {
+  "errorShown": true,
+  "secondsUntilError": 0.1,
+  "errorText": "Сервис распознавания вернул ошибку (HTTP 500).",
+  "spinnerAtEnd": false,
+  "requestsForResults": 1,
+  "consoleCharacters": 394,
+  "uploadWentTo": "<origin>/analyze",
+  "seconds": 0.3
+ },
+ "file_over_the_limit_413": {
+  "errorText": "Файл слишком большой (максимум 10 МБ).",
+  "spinnerAtEnd": false,
+  "requestsForResults": 0,
+  "consoleCharacters": 779,
+  "uploadWentTo": "<origin>/analyze",
+  "seconds": 0.4
+ },
+ "api_dies_while_polling": {
+  "errorShown": true,
+  "secondsUntilError": 4.3,
+  "requestsWhileApiWasDown": 4,
+  "errorText": "Не удалось связаться с сервером. Проверьте соединение.",
+  "spinnerAtEnd": false,
+  "requestsForResults": 6,
+  "consoleCharacters": 663,
+  "uploadWentTo": "<origin>/analyze",
+  "seconds": 11.9
+ },
+ "cancel_during_analysis": {
+  "noteShown": true,
+  "requestsForResultsAfterCancel": 0,
+  "resultShown": false,
+  "requestsForResults": 2,
+  "consoleCharacters": 158,
+  "uploadWentTo": "<origin>/analyze",
+  "seconds": 5.5
+ },
+ "api_address_not_configured": {
+  "errorText": "Не удалось выполнить анализ.",
+  "requestsForResults": 0,
+  "consoleCharacters": 732,
+  "uploadWentTo": "<origin>/api/analyze",
+  "seconds": 0.3
+ }
+}

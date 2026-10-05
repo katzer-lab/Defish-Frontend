@@ -1,8 +1,11 @@
 // App.jsx
 import { useRef, useState, useEffect } from 'react';
-import axios from 'axios';
 import Lightfall from './Lightfall';
+import { submitPhoto, pollResult, cancelTask, describeError, isAborted } from './api';
 import './App.css';
+
+// Вне компонента: новый массив на каждый рендер заставлял бы Lightfall пересоздавать WebGL-контекст.
+const LIGHTFALL_COLORS = ['#A6C8FF', '#5227FF', '#FF9FFC'];
 
 function App() {
   const [file, setFile] = useState(null);
@@ -11,6 +14,7 @@ function App() {
   const [error, setError] = useState(null);
   const [taskId, setTaskId] = useState(null);
   const [isCanceled, setIsCanceled] = useState(false);
+  const abortRef = useRef(null);
   const imgRef = useRef(null);
   const [selectedDet, setSelectedDet] = useState(null);
   const [imgSize, setImgSize] = useState({ width: 0, height: 0 });
@@ -26,10 +30,6 @@ function App() {
   const [filePreviewUrl, setFilePreviewUrl] = useState(null);
   const [uploadFile, setUploadFile] = useState(null);
 
-  const backend_ip = import.meta.env.VITE_API_URL;
-
-  console.log("ENV:", import.meta.env);
-  console.log("API:", import.meta.env.VITE_API_URL);
   const scaleX =
     imgNaturalSize.width
       ? imgSize.width / imgNaturalSize.width
@@ -49,9 +49,10 @@ function App() {
 
 const handleDetClick = (det) => {
   setSelectedDet(det);
+  setCroppedImage(null);
 
   const img = imgRef.current;
-  if (!img) return;
+  if (!img) return;  // the photo is gone from the server: the panel shows the diagnosis without a crop
 
   const canvas = document.createElement('canvas');
   
@@ -86,6 +87,8 @@ useEffect(() => {
     window.removeEventListener('mouseup', onMouseUp);
   };
 }, []);
+
+useEffect(() => () => abortRef.current?.abort(), []);
 
 useEffect(() => {
   if (!file) {
@@ -152,42 +155,13 @@ useEffect(() => {
 }, [result]);
 
 
-  // Функция polling
-  const pollResult = async (task_id, interval = 1000, maxAttempts = 1000) => {
-    let attempts = 0;
-    while (attempts < maxAttempts) {
-      try {
-        const response = await axios.get(`${backend_ip}/analyze-result/${task_id}`);
-        const data = response.data;
-
-      if (data.status === 'canceled'){ 
-        console.log("Опрос остановлен: задача отменена сервером");
-        return data; // ПРЕРЫВАЕМ ЦИКЛ ЗДЕСЬ
-      }
-
-          if (!data.status || data.status === 'done') {
-            // Результат готов
-            return data;
-          }
-
-        // if (data.status === 'processing') {
-          // Ждем и пробуем снова
-          await new Promise(resolve => setTimeout(resolve, interval));
-        // }
-
-      } catch (err) {
-        console.error('Ошибка при получении результата:', err);
-      }
-
-      attempts++;
-    }
-
-    throw new Error('Превышено время ожидания результата');
-  };
-
   const handleUpload = async (e) => {
     e.preventDefault();
     if (!uploadFile) return;
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     setIsCanceled(false);
     setLoading(true);
@@ -197,72 +171,50 @@ useEffect(() => {
     setSelectedDet(null);
     setCroppedImage(null);
 
-    const formData = new FormData();
-    formData.append('image', uploadFile);
-
     try {
-      // 1️⃣ Отправляем POST-запрос на анализ
-      const task_response = await axios.post(
-        `${backend_ip}/analyze`,
-        formData
-      );
+      // 1. отправляем фото
+      const data = await submitPhoto(uploadFile, { signal: controller.signal });
 
-      const data = task_response.data;
-
-      if (data.status === 'canceled') {
-        setResult(null); // Очищаем, чтобы ничего не всплывало
-        console.log("Результат не установлен, так как задача отменена");
-      }
-      
-      // 🔍 Проверяем, пришел ли результат сразу (из кэша)
       if (data.id && data.diagnosis) {
-        // Это результат из кэша - показываем сразу
-        console.log('Получен результат из кэша:', data);
+        // результат пришёл сразу (тот же снимок уже анализировали, ответ из кэша)
         setResult(data);
-      } 
-      // Если пришел task_id - значит задача в обработке
-      else if (data.task_id) {
-        console.log('Задача создана, task_id:', data.task_id);
+      } else if (data.task_id) {
+        // 2. задача принята: опрашиваем сервер до готовности результата
         setTaskId(data.task_id);
-        // 2️⃣ Опрашиваем сервер до готовности результата
-        const analysisResult = await pollResult(data.task_id);
-        setResult(analysisResult);
-      } 
-      else {
+        const analysisResult = await pollResult(data.task_id, { signal: controller.signal });
+        if (analysisResult.status !== 'canceled') setResult(analysisResult);
+      } else {
         throw new Error('Неожиданный формат ответа от сервера');
       }
-
     } catch (err) {
+      if (isAborted(err)) return;  // отмена пользователем: сообщение уже показано
       console.error('Ошибка при анализе:', err);
-      setError(err.message || 'Что-то пошло не так');
-
+      setError(describeError(err));
     } finally {
-      setLoading(false);
+      // старый запрос не должен гасить индикатор нового
+      if (abortRef.current === controller) setLoading(false);
     }
-};
+  };
 
   const handleCancel = async () => {
-  if (!taskId) return;
+    abortRef.current?.abort();
+    setIsCanceled(true);
+    setLoading(false);
+    setResult(null);
 
-  try {
-    await axios.post(
-      `${backend_ip}/cancel/${taskId}`
-    );
-  } catch (e) {
-    console.error(e);
-  }
+    if (!taskId) return;
+    try {
+      await cancelTask(taskId);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
-  setIsCanceled(true);
-  setLoading(false);
-  setResult(null);
-};
-
-console.log("RESULT:", JSON.stringify(result, null, 2));
   return (
     <div className="app-shell">
       <div className="lightfall-bg">
         <Lightfall
-          colors={['#A6C8FF', '#5227FF', '#FF9FFC']}
+          colors={LIGHTFALL_COLORS}
           backgroundColor="#0A29FF"
           speed={0.5}
           streakCount={1}
@@ -316,6 +268,7 @@ console.log("RESULT:", JSON.stringify(result, null, 2));
 </form>
 
       {error && <p className="error">{error}</p>}
+      {isCanceled && !loading && <p className="status-note">Анализ отменён.</p>}
 
 
       {result && !result.error && result.status !== 'canceled' &&(
@@ -325,7 +278,7 @@ console.log("RESULT:", JSON.stringify(result, null, 2));
           <p><strong>Вероятность:</strong> {(result.confidence * 100).toFixed(1)}%</p>
           <p><strong>Рекомендации:</strong> {result.recommendations}</p> */}
    <div className="result-content">
-          {result.original_image && (
+          {result.original_image ? (
           <div className="image-wrapper">
             <img
               ref={imgRef}
@@ -372,6 +325,22 @@ console.log("RESULT:", JSON.stringify(result, null, 2));
               })}
             </svg>
           </div>
+          ) : (
+          <div className="no-photo">
+            <p className="notice">Фото больше недоступно на сервере, но диагноз получен:</p>
+            <ul className="detection-list">
+              {result.detections?.map((det, i) => (
+                <li key={i}>
+                  <button type="button" className={`detection-item ${det.classification_class === 'healthy' ? 'healthy' : 'sick'}`}
+                          onClick={() => handleDetClick(det)}>
+                    {det.classification_class === 'healthy' ? 'Здоров' : det.classification_class}
+                    {' · '}{(det.classification_confidence * 100).toFixed(1)}%
+                  </button>
+                </li>
+              ))}
+              {!result.detections?.length && <li className="notice">{result.recommendations}</li>}
+            </ul>
+          </div>
           )}
       {selectedDet && (
         <div className="side-panel" style={{ width: panelWidth }}>
@@ -396,6 +365,19 @@ console.log("RESULT:", JSON.stringify(result, null, 2));
             {selectedDet.classification_class === 'healthy' ? 'Здоров' : `${selectedDet.classification_class}`}
           </div>
           <p><strong>Уверенность:</strong> {(selectedDet.classification_confidence * 100).toFixed(1)}%</p>
+          {selectedDet.uncertain && (
+            <p className="uncertain-note">Модель не уверена в этом результате: считайте его подсказкой.</p>
+          )}
+          {selectedDet.top3?.length > 0 && (
+            <div className="top3">
+              <strong>Наиболее вероятные классы:</strong>
+              <ul>
+                {selectedDet.top3.map((item) => (
+                  <li key={item.label}>{item.label}: {(item.confidence * 100).toFixed(1)}%</li>
+                ))}
+              </ul>
+            </div>
+          )}
           <div className="recommendations">
             <strong>Рекомендации:</strong>
             <p>{selectedDet.recommendations}</p>

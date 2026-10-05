@@ -235,12 +235,13 @@
 
 @media (max-width: 480px) {
   .side-panel {
-    width: 100vw;
+    width: 100vw !important; /* перебивает ширину, которую задаёт перетаскивание края */
   }
 }
 
 .side-panel h3,
 .side-panel p strong,
+.side-panel .top3 > strong,
 .side-panel .recommendations > strong {
   color: #278DF4;
 }
@@ -349,4 +350,59 @@
     color: #d6473f;
     border: 1px solid #d6473f;
   }
+}
+/* отмена, фото недоступно, неуверенный результат */
+.status-note {
+  color: #ffffff;
+  margin: 0.5rem 0 0;
+}
+
+.notice {
+  margin: 0 0 0.75rem;
+  color: #333;
+}
+
+.detection-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.detection-item {
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.5rem;
+  background: transparent;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.detection-item.healthy {
+  color: #1f9d3f;
+  border: 1px solid #1f9d3f;
+}
+
+.detection-item.sick {
+  color: #d6473f;
+  border: 1px solid #d6473f;
+}
+
+.uncertain-note {
+  margin: 0.75rem 0 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e0a800;
+  border-radius: 0.5rem;
+  color: #e0a800;
+  font-size: 0.9rem;
+}
+
+.top3 {
+  margin-top: 0.75rem;
+}
+
+.top3 ul {
+  margin: 0.4rem 0 0;
+  padding-left: 1.1rem;
 }

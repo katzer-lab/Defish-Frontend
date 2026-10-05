@@ -201,11 +201,18 @@ const Lightfall = ({
     const container = containerRef.current;
     if (!container) return;
 
-    const renderer = new Renderer({
-      dpr: dpr ?? (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1),
-      alpha: true,
-      antialias: true
-    });
+    // Без WebGL (отключён в браузере или недоступен) фон просто не рисуется, приложение работает.
+    let renderer;
+    try {
+      renderer = new Renderer({
+        dpr: dpr ?? (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1),
+        alpha: true,
+        antialias: true
+      });
+    } catch (e) {
+      console.warn('WebGL is not available, the animated background is off:', e);
+      return;
+    }
     rendererRef.current = renderer;
     const gl = renderer.gl;
     const canvas = gl.canvas;

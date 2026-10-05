@@ -1,0 +1,10 @@
+# WebGL background (docs/capture/webgl.mjs), 2026-10-04. Chrome with SwiftShader against a dev server, mock backend.
+# "drag": 20 mouse moves while dragging the edge of the side panel. "without WebGL": Chrome started with --disable-3d-apis --disable-gpu.
+
+OLD (commit 91b9954):
+webgl on  {"webglContextsCreatedByThePanelDrag":20,"totalContexts":29}
+webgl off {"h1":0,"uploadForm":0,"pageErrors":["TypeError: Cannot set properties of null (setting 'renderer')","TypeError: Cannot set properties of null (setting 'renderer')"]}
+
+NEW (this working tree):
+webgl on  {"webglContextsCreatedByThePanelDrag":0,"totalContexts":2}      # 2 = React StrictMode mounts the background twice in development
+webgl off {"h1":1,"uploadForm":1,"pageErrors":[]}
