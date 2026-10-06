@@ -4,7 +4,7 @@ import Lightfall from './Lightfall';
 import { submitPhoto, pollResult, cancelTask, describeError, isAborted } from './api';
 import './App.css';
 
-// Вне компонента: новый массив на каждый рендер заставлял бы Lightfall пересоздавать WebGL-контекст.
+// Outside the component: a new array on every render would make Lightfall recreate the WebGL context.
 const LIGHTFALL_COLORS = ['#A6C8FF', '#5227FF', '#FF9FFC'];
 
 function App() {
@@ -56,7 +56,7 @@ const handleDetClick = (det) => {
 
   const canvas = document.createElement('canvas');
   
-  // координаты в натуральных пикселях
+  // coordinates in natural pixels
   const x = det.x_min;
   const y = det.y_min;
   const w = det.x_max - det.x_min;
@@ -74,7 +74,7 @@ const handleDetClick = (det) => {
 useEffect(() => {
   const onMouseMove = (e) => {
     if (!resizing.current) return;
-    const delta = startX.current - e.clientX; // тянем влево = увеличиваем
+    const delta = startX.current - e.clientX; // dragging left = increase
     const newWidth = Math.min(800, Math.max(200, startWidth.current + delta));
     setPanelWidth(newWidth);
   };
@@ -100,16 +100,16 @@ useEffect(() => {
   let objectUrl = null;
   let cancelled = false;
 
-  // Сбрасываем сразу, иначе пока новый HEIC асинхронно конвертируется,
-  // кнопка анализа остаётся активной со старым uploadFile от предыдущего файла.
+  // Reset right away, otherwise while a new HEIC is converted asynchronously,
+  // the analyse button stays active with the old uploadFile of the previous file.
   setUploadFile(null);
 
   const isHeic = /image\/hei(c|f)/i.test(file.type) || /\.hei[cf]$/i.test(file.name);
 
   if (isHeic) {
-    // Браузеры (кроме Safari) не умеют декодировать HEIC/HEIF в <img>, а бэкенд
-    // не всегда умеет декодировать HEIC вовсе — поэтому конвертируем в JPEG на
-    // клиенте один раз и используем этот файл и для превью, и для отправки на анализ.
+    // Browsers (except Safari) cannot decode HEIC/HEIF in an <img>, and the backend
+    // cannot always decode HEIC at all, so it is converted to JPEG on the
+    // client once, and that file is used both for the preview and for sending to the analysis.
     import('heic-to')
       .then(({ heicTo }) => heicTo({ blob: file, type: 'image/jpeg', quality: 0.92 }))
       .then((converted) => {
@@ -121,7 +121,7 @@ useEffect(() => {
         setFilePreviewUrl(objectUrl);
       })
       .catch((err) => {
-        console.error('Не удалось конвертировать HEIC:', err);
+        console.error('Could not convert HEIC:', err);
         if (!cancelled) {
           setFilePreviewUrl(null);
           setUploadFile(null);
@@ -172,26 +172,26 @@ useEffect(() => {
     setCroppedImage(null);
 
     try {
-      // 1. отправляем фото
+      // 1. send the photo
       const data = await submitPhoto(uploadFile, { signal: controller.signal });
 
       if (data.id && data.diagnosis) {
-        // результат пришёл сразу (тот же снимок уже анализировали, ответ из кэша)
+        // the result came at once (the same picture was analysed before, the answer is from the cache)
         setResult(data);
       } else if (data.task_id) {
-        // 2. задача принята: опрашиваем сервер до готовности результата
+        // 2. the task is accepted: poll the server until the result is ready
         setTaskId(data.task_id);
         const analysisResult = await pollResult(data.task_id, { signal: controller.signal });
         if (analysisResult.status !== 'canceled') setResult(analysisResult);
       } else {
-        throw new Error('Неожиданный формат ответа от сервера');
+        throw new Error('Unexpected response format from the server');
       }
     } catch (err) {
-      if (isAborted(err)) return;  // отмена пользователем: сообщение уже показано
-      console.error('Ошибка при анализе:', err);
+      if (isAborted(err)) return;  // canceled by the user: the message is already shown
+      console.error('Error during the analysis:', err);
       setError(describeError(err));
     } finally {
-      // старый запрос не должен гасить индикатор нового
+      // an old request must not turn off the indicator of the new one
       if (abortRef.current === controller) setLoading(false);
     }
   };
@@ -235,7 +235,7 @@ useEffect(() => {
       <h1>🐟 Defish</h1>
       
   <form onSubmit={handleUpload} className="upload-form">
-  <label className="icon-btn file-btn" title="Выбрать файл">
+  <label className="icon-btn file-btn" title="Choose a file">
     <input
       type="file"
       accept="image/*"
@@ -252,7 +252,7 @@ useEffect(() => {
   )}
 
   {!loading ? (
-    <button type="submit" className="icon-btn submit-btn" disabled={!uploadFile} title="Диагностировать">
+    <button type="submit" className="icon-btn submit-btn" disabled={!uploadFile} title="Diagnose">
       <svg viewBox="0 0 24 24" className="icon triangle-icon" fill="currentColor">
         <path d="M8 5v14l11-7z"/>
       </svg>
@@ -268,15 +268,15 @@ useEffect(() => {
 </form>
 
       {error && <p className="error">{error}</p>}
-      {isCanceled && !loading && <p className="status-note">Анализ отменён.</p>}
+      {isCanceled && !loading && <p className="status-note">Analysis canceled.</p>}
 
 
       {result && !result.error && result.status !== 'canceled' &&(
         <div className="result">
-          <h2>Результат анализа:</h2>
-          {/* <p><strong>Диагноз:</strong> {result.diagnosis}</p>
-          <p><strong>Вероятность:</strong> {(result.confidence * 100).toFixed(1)}%</p>
-          <p><strong>Рекомендации:</strong> {result.recommendations}</p> */}
+          <h2>Analysis result:</h2>
+          {/* <p><strong>Diagnosis:</strong> {result.diagnosis}</p>
+          <p><strong>Probability:</strong> {(result.confidence * 100).toFixed(1)}%</p>
+          <p><strong>Recommendations:</strong> {result.recommendations}</p> */}
    <div className="result-content">
           {result.original_image ? (
           <div className="image-wrapper">
@@ -289,7 +289,7 @@ useEffect(() => {
                   width: img.naturalWidth,
                   height: img.naturalHeight,
                 });
-                // clientWidth/Height уже корректны после onLoad с CSS max-width
+                // clientWidth/Height are already correct after onLoad with the CSS max-width
                 setImgSize({
                   width: img.clientWidth,
                   height: img.clientHeight,
@@ -327,13 +327,13 @@ useEffect(() => {
           </div>
           ) : (
           <div className="no-photo">
-            <p className="notice">Фото больше недоступно на сервере, но диагноз получен:</p>
+            <p className="notice">The photo is no longer available on the server, but the diagnosis was received:</p>
             <ul className="detection-list">
               {result.detections?.map((det, i) => (
                 <li key={i}>
                   <button type="button" className={`detection-item ${det.classification_class === 'healthy' ? 'healthy' : 'sick'}`}
                           onClick={() => handleDetClick(det)}>
-                    {det.classification_class === 'healthy' ? 'Здоров' : det.classification_class}
+                    {det.classification_class === 'healthy' ? 'Healthy' : det.classification_class}
                     {' · '}{(det.classification_confidence * 100).toFixed(1)}%
                   </button>
                 </li>
@@ -346,7 +346,7 @@ useEffect(() => {
         <div className="side-panel" style={{ width: panelWidth }}>
           <div className="resize-handle" onMouseDown={onResizeMouseDown} />
           <button className="side-panel-close" onClick={() => setSelectedDet(null)}>✕</button>
-          <h3>Диагностика</h3>
+          <h3>Diagnosis</h3>
           {croppedImage && (
             <img
               className={`diagnosis-img ${selectedDet.classification_class === 'healthy' ? 'healthy' : 'sick'}`}
@@ -362,15 +362,15 @@ useEffect(() => {
             />
           )}
           <div className={`diagnosis-badge ${selectedDet.classification_class === 'healthy' ? 'healthy' : 'sick'}`}>
-            {selectedDet.classification_class === 'healthy' ? 'Здоров' : `${selectedDet.classification_class}`}
+            {selectedDet.classification_class === 'healthy' ? 'Healthy' : `${selectedDet.classification_class}`}
           </div>
-          <p><strong>Уверенность:</strong> {(selectedDet.classification_confidence * 100).toFixed(1)}%</p>
+          <p><strong>Confidence:</strong> {(selectedDet.classification_confidence * 100).toFixed(1)}%</p>
           {selectedDet.uncertain && (
-            <p className="uncertain-note">Модель не уверена в этом результате: считайте его подсказкой.</p>
+            <p className="uncertain-note">The model is not sure about this result: treat it as a hint.</p>
           )}
           {selectedDet.top3?.length > 0 && (
             <div className="top3">
-              <strong>Наиболее вероятные классы:</strong>
+              <strong>Most probable classes:</strong>
               <ul>
                 {selectedDet.top3.map((item) => (
                   <li key={item.label}>{item.label}: {(item.confidence * 100).toFixed(1)}%</li>
@@ -379,7 +379,7 @@ useEffect(() => {
             </div>
           )}
           <div className="recommendations">
-            <strong>Рекомендации:</strong>
+            <strong>Recommendations:</strong>
             <p>{selectedDet.recommendations}</p>
           </div>
         </div>

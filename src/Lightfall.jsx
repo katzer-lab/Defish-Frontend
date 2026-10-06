@@ -201,7 +201,7 @@ const Lightfall = ({
     const container = containerRef.current;
     if (!container) return;
 
-    // Без WebGL (отключён в браузере или недоступен) фон просто не рисуется, приложение работает.
+    // Without WebGL (disabled in the browser or unavailable) the background is simply not drawn, the application works.
     let renderer;
     try {
       renderer = new Renderer({
@@ -283,8 +283,8 @@ const Lightfall = ({
       }
     };
     if (mouseInteraction) {
-      // pointermove не стреляет на обычный тап без свайпа, поэтому
-      // pointerdown нужен отдельно, чтобы пятно реагировало на тач.
+      // pointermove does not fire on a plain tap without a swipe, so
+      // pointerdown is needed separately, for the spot to react to touch.
       window.addEventListener('pointermove', onPointerMove, { passive: true });
       window.addEventListener('pointerdown', onPointerMove, { passive: true });
     }

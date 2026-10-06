@@ -93,7 +93,7 @@ Not used: `diagnosis`, `confidence` and `recommendations` of the whole photo, `i
 
 - **Boxes.** The photo is shown at most 800 x 600 CSS pixels; an SVG of the displayed size lies over it. Every box is the detection scaled by displayed size / natural size, read from the image after it loads and again by a `ResizeObserver`. Green (`lime`) for `healthy`, red for any other class.
 - **Crop.** Clicking a box draws that rectangle of the original photo (natural pixels) into a canvas and shows it in the panel; nothing is requested from the server.
-- **Panel.** Class (the code of the class, or "Здоров" for `healthy`), confidence, a note when the model flagged the result as `uncertain`, the three most probable classes, and the advice for that fish. Its edge can be dragged between 200 and 800 px; on a phone (up to 480 px) it takes the whole width.
+- **Panel.** Class (the code of the class, or "Healthy" for `healthy`), confidence, a note when the model flagged the result as `uncertain`, the three most probable classes, and the advice for that fish. Its edge can be dragged between 200 and 800 px; on a phone (up to 480 px) it takes the whole width.
 - **Without the photo.** The API keeps a photo for an hour; if it is gone the answer has `original_image: null`. The page then lists the detections as buttons (class and confidence) under a note, and the panel opens without a crop.
 
 ## The background

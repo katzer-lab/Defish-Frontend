@@ -24,13 +24,13 @@ export const isAborted = (err) => err?.name === 'AbortError' || axios.isCancel(e
 
 const abortError = () => new DOMException('Aborted', 'AbortError');
 
-// Texts of a failed task, as the backend reports them, in the language of the interface.
+// Texts of a failed task: the backend's short error text mapped to a message for the person.
 export function describeFailure(message = '') {
   const http = /HTTP (\d+)/i.exec(message);
-  if (/unavailable/i.test(message)) return 'Сервис распознавания недоступен. Попробуйте позже.';
-  if (/timed out/i.test(message)) return 'Распознавание заняло слишком много времени. Попробуйте ещё раз.';
-  if (http) return `Сервис распознавания вернул ошибку (HTTP ${http[1]}).`;
-  return 'Не удалось проанализировать фото. Попробуйте ещё раз.';
+  if (/unavailable/i.test(message)) return 'The recognition service is unavailable. Try again later.';
+  if (/timed out/i.test(message)) return 'Recognition took too long. Try again.';
+  if (http) return `The recognition service returned an error (HTTP ${http[1]}).`;
+  return 'Could not analyse the photo. Try again.';
 }
 
 // Text for an error of a request (upload or poll).
@@ -39,12 +39,12 @@ export function describeError(err) {
   const status = err?.response?.status;
   if (status === 413) {
     const limit = /larger than ([\d.]+) MB/.exec(err.response.data?.detail ?? '');
-    return limit ? `Файл слишком большой (максимум ${limit[1]} МБ).` : 'Файл слишком большой.';
+    return limit ? `File is too large (maximum ${limit[1]} MB).` : 'File is too large.';
   }
-  if (status === 422) return 'Сервер не принял файл. Выберите изображение.';
-  if (status >= 500) return 'Сервер временно недоступен. Попробуйте позже.';
-  if (!err?.response) return 'Не удалось связаться с сервером. Проверьте соединение.';
-  return 'Не удалось выполнить анализ.';
+  if (status === 422) return 'The server did not accept the file. Choose an image.';
+  if (status >= 500) return 'The server is temporarily unavailable. Try again later.';
+  if (!err?.response) return 'Could not reach the server. Check your connection.';
+  return 'Could not complete the analysis.';
 }
 
 export async function submitPhoto(file, { signal } = {}) {
@@ -104,5 +104,5 @@ export async function pollResult(taskId, {
     // also after an error: without a pause a failing server would be hit in a tight loop
     await sleep(interval, signal);
   }
-  throw new ApiError('Анализ занимает слишком много времени. Попробуйте ещё раз.', { kind: 'timeout' });
+  throw new ApiError('The analysis is taking too long. Try again.', { kind: 'timeout' });
 }

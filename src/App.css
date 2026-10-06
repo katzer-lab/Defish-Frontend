@@ -36,7 +36,7 @@
 }
 
 .image-wrapper img {
-  max-width: 800px;   /* или любое нужное значение */
+  max-width: 800px;   /* or any value that is needed */
   max-height: 600px;
   width: 100%;
   height: auto;
@@ -47,11 +47,11 @@
   position: absolute;
   top: 0;
   left: 0;
-  pointer-events: none; /* чтобы клики проходили к rect */
+  pointer-events: none; /* so that clicks pass through to the rect */
 }
 
 .overlay rect {
-  pointer-events: all; /* но rect-ам разрешаем */
+  pointer-events: all; /* but the rects are allowed to receive them */
 }
 
 .annotated-image {
@@ -191,7 +191,7 @@
   z-index: 1;
 }
 
-/* Анимация вращения */
+/* Rotation animation */
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -235,7 +235,7 @@
 
 @media (max-width: 480px) {
   .side-panel {
-    width: 100vw !important; /* перебивает ширину, которую задаёт перетаскивание края */
+    width: 100vw !important; /* overrides the width set by dragging the edge */
   }
 }
 
@@ -351,7 +351,7 @@
     border: 1px solid #d6473f;
   }
 }
-/* отмена, фото недоступно, неуверенный результат */
+/* canceled, photo unavailable, uncertain result */
 .status-note {
   color: #ffffff;
   margin: 0.5rem 0 0;

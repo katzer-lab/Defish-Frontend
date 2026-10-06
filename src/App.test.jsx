@@ -17,16 +17,16 @@ const PHOTO = '/9j/photo';
 const HEALTHY = {
   x_min: 100, y_min: 50, x_max: 300, y_max: 150, classification_class: 'healthy',
   classification_confidence: 0.93, detection_confidence: 0.9, uncertain: false,
-  top3: [{ label: 'healthy', confidence: 0.93 }], recommendations: 'Рыба здорова.',
+  top3: [{ label: 'healthy', confidence: 0.93 }], recommendations: 'The fish is healthy.',
 };
 const SICK = {
   x_min: 320, y_min: 200, x_max: 400, y_max: 260, classification_class: 'fin_rot',
   classification_confidence: 0.62, detection_confidence: 0.8, uncertain: true,
   top3: [{ label: 'fin_rot', confidence: 0.62 }, { label: 'healthy', confidence: 0.3 }, { label: 'oodiniosis', confidence: 0.08 }],
-  recommendations: 'Плавниковая гниль.',
+  recommendations: 'Fin rot.',
 };
 const RESULT = {
-  id: '7', diagnosis: 'healthy, fin_rot', confidence: 0.775, recommendations: 'Плавниковая гниль.',
+  id: '7', diagnosis: 'healthy, fin_rot', confidence: 0.775, recommendations: 'Fin rot.',
   original_image: PHOTO, image_width: 640, image_height: 480, detections: [HEALTHY, SICK],
 };
 
@@ -53,7 +53,7 @@ const choose = (file) => {
   fireEvent.change(input, { target: { files: [file] } });
 };
 const jpeg = () => new File(['x'], 'fish.jpg', { type: 'image/jpeg' });
-const diagnose = () => screen.getByTitle('Диагностировать');
+const diagnose = () => screen.getByTitle('Diagnose');
 
 // renders the page, uploads a photo and shows `result` (as if it came back from the API)
 async function showResult(result = RESULT) {
@@ -63,7 +63,7 @@ async function showResult(result = RESULT) {
   choose(jpeg());
   await waitFor(() => expect(diagnose()).toBeEnabled());
   fireEvent.click(diagnose());
-  return screen.findByText('Результат анализа:');
+  return screen.findByText('Analysis result:');
 }
 const photo = () => document.querySelector('.image-wrapper img');
 
@@ -126,7 +126,7 @@ describe('result', () => {
 
     fireEvent.click(diagnose());
 
-    expect(await screen.findByText('Результат анализа:')).toBeInTheDocument();
+    expect(await screen.findByText('Analysis result:')).toBeInTheDocument();
     expect(pollResult).not.toHaveBeenCalled();
   });
 
@@ -137,34 +137,34 @@ describe('result', () => {
 
     fireEvent.click(sick);
 
-    expect(await screen.findByText('Диагностика')).toBeInTheDocument();
+    expect(await screen.findByText('Diagnosis')).toBeInTheDocument();
     expect(screen.getByText('fin_rot', { selector: '.diagnosis-badge' })).toBeInTheDocument();
     expect(screen.getByText('62.0%')).toBeInTheDocument();
-    expect(screen.getByText('Плавниковая гниль.', { selector: '.recommendations p' })).toBeInTheDocument();
-    expect(screen.getByText(/Модель не уверена/)).toBeInTheDocument();
+    expect(screen.getByText('Fin rot.', { selector: '.recommendations p' })).toBeInTheDocument();
+    expect(screen.getByText(/not sure about this result/)).toBeInTheDocument();
     expect(screen.getByText('healthy: 30.0%')).toBeInTheDocument();
     // the crop is cut from the original photo at natural coordinates
     expect(drawImage).toHaveBeenCalledWith(photo(), 320, 200, 80, 60, 0, 0, 80, 60);
     expect(document.querySelector('.diagnosis-img')).toHaveAttribute('src', 'data:image/jpeg;base64,CROP');
   });
 
-  it('labels a healthy fish "Здоров", has no uncertainty note, and closes with the cross', async () => {
+  it('labels a healthy fish "Healthy", has no uncertainty note, and closes with the cross', async () => {
     await showResult();
     fireEvent.load(photo());
 
     fireEvent.click(document.querySelectorAll('svg.overlay rect')[0]);
 
-    expect(await screen.findByText('Здоров')).toBeInTheDocument();
-    expect(screen.queryByText(/Модель не уверена/)).not.toBeInTheDocument();
+    expect(await screen.findByText('Healthy')).toBeInTheDocument();
+    expect(screen.queryByText(/not sure about this result/)).not.toBeInTheDocument();
     fireEvent.click(screen.getByText('✕'));
-    expect(screen.queryByText('Диагностика')).not.toBeInTheDocument();
+    expect(screen.queryByText('Diagnosis')).not.toBeInTheDocument();
   });
 
   it('resizes the panel by dragging its edge, between 200 and 800 px', async () => {
     await showResult();
     fireEvent.load(photo());
     fireEvent.click(document.querySelectorAll('svg.overlay rect')[0]);
-    const panel = await screen.findByText('Диагностика').then((h) => h.closest('.side-panel'));
+    const panel = await screen.findByText('Diagnosis').then((h) => h.closest('.side-panel'));
     const handle = panel.querySelector('.resize-handle');
     expect(panel).toHaveStyle({ width: '320px' });
 
@@ -183,10 +183,10 @@ describe('result', () => {
   it('still shows the diagnosis when the photo is no longer available on the server', async () => {
     await showResult({ ...RESULT, original_image: null });
 
-    expect(screen.getByText(/Фото больше недоступно/)).toBeInTheDocument();
+    expect(screen.getByText(/no longer available/)).toBeInTheDocument();
     expect(photo()).toBeNull();
     fireEvent.click(screen.getByText(/fin_rot · 62.0%/));
-    expect(await screen.findByText('Диагностика')).toBeInTheDocument();
+    expect(await screen.findByText('Diagnosis')).toBeInTheDocument();
     expect(document.querySelector('.diagnosis-img')).toBeNull();   // no crop without the photo
   });
 });
@@ -213,23 +213,23 @@ describe('cancel and errors', () => {
 
     fireEvent.click(cancel);
 
-    expect(await screen.findByText('Анализ отменён.')).toBeInTheDocument();
+    expect(await screen.findByText('Analysis canceled.')).toBeInTheDocument();
     expect(pollSignal.aborted).toBe(true);
     expect(cancelTask).toHaveBeenCalledWith('t1');
-    expect(screen.queryByText('Результат анализа:')).not.toBeInTheDocument();
-    expect(screen.queryByText(/Не удалось|ошибк/i)).not.toBeInTheDocument();
+    expect(screen.queryByText('Analysis result:')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Could not|error/i)).not.toBeInTheDocument();
   });
 
   it('shows why a task failed and lets the user try again', async () => {
     submitPhoto.mockResolvedValue({ task_id: 't1' });
-    pollResult.mockRejectedValue(new ApiError('Сервис распознавания недоступен. Попробуйте позже.', { kind: 'failed' }));
+    pollResult.mockRejectedValue(new ApiError('The recognition service is unavailable. Try again later.', { kind: 'failed' }));
     render(<App />);
     choose(jpeg());
     await waitFor(() => expect(diagnose()).toBeEnabled());
 
     fireEvent.click(diagnose());
 
-    expect(await screen.findByText('Сервис распознавания недоступен. Попробуйте позже.')).toBeInTheDocument();
+    expect(await screen.findByText('The recognition service is unavailable. Try again later.')).toBeInTheDocument();
     await waitFor(() => expect(diagnose()).toBeEnabled());     // the spinner is gone
   });
 
@@ -242,7 +242,7 @@ describe('cancel and errors', () => {
 
     fireEvent.click(diagnose());
 
-    expect(await screen.findByText('Файл слишком большой (максимум 10 МБ).')).toBeInTheDocument();
+    expect(await screen.findByText('File is too large (maximum 10 MB).')).toBeInTheDocument();
     expect(pollResult).not.toHaveBeenCalled();
   });
 });

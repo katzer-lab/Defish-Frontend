@@ -44,10 +44,10 @@ describe('pollResult', () => {
   });
 
   it.each([
-    ['ML service unavailable', 'Сервис распознавания недоступен. Попробуйте позже.'],
-    ['ML service timed out', 'Распознавание заняло слишком много времени. Попробуйте ещё раз.'],
-    ['ML service returned HTTP 500', 'Сервис распознавания вернул ошибку (HTTP 500).'],
-    ['Internal error', 'Не удалось проанализировать фото. Попробуйте ещё раз.'],
+    ['ML service unavailable', 'The recognition service is unavailable. Try again later.'],
+    ['ML service timed out', 'Recognition took too long. Try again.'],
+    ['ML service returned HTTP 500', 'The recognition service returned an error (HTTP 500).'],
+    ['Internal error', 'Could not analyse the photo. Try again.'],
   ])('stops at a failed task (%s) with a readable message', async (serverMessage, expected) => {
     axios.get.mockResolvedValueOnce({ data: { status: 'failed', message: serverMessage, task_id: 't1' } });
 
@@ -80,7 +80,7 @@ describe('pollResult', () => {
     axios.get.mockRejectedValue(httpError(502));
     const error = await pollResult('t1', { interval: 1 }).catch((e) => e);
     expect(error.kind).toBe('network');
-    expect(error.message).toBe('Сервер временно недоступен. Попробуйте позже.');
+    expect(error.message).toBe('The server is temporarily unavailable. Try again later.');
     expect(axios.get).toHaveBeenCalledTimes(5);
   });
 
@@ -131,18 +131,18 @@ describe('pollResult before it starts', () => {
 
 describe('describeError', () => {
   it.each([
-    [httpError(413, { detail: 'Image is larger than 10 MB' }), 'Файл слишком большой (максимум 10 МБ).'],
-    [httpError(413), 'Файл слишком большой.'],
-    [httpError(422), 'Сервер не принял файл. Выберите изображение.'],
-    [httpError(500, { detail: 'Task queue error' }), 'Сервер временно недоступен. Попробуйте позже.'],
-    [networkError(), 'Не удалось связаться с сервером. Проверьте соединение.'],
-    [httpError(404), 'Не удалось выполнить анализ.'],
+    [httpError(413, { detail: 'Image is larger than 10 MB' }), 'File is too large (maximum 10 MB).'],
+    [httpError(413), 'File is too large.'],
+    [httpError(422), 'The server did not accept the file. Choose an image.'],
+    [httpError(500, { detail: 'Task queue error' }), 'The server is temporarily unavailable. Try again later.'],
+    [networkError(), 'Could not reach the server. Check your connection.'],
+    [httpError(404), 'Could not complete the analysis.'],
   ])('maps %# to a message in the interface language', (error, expected) => {
     expect(describeError(error)).toBe(expected);
   });
 
   it('describeFailure falls back to a general text', () => {
-    expect(describeFailure()).toBe('Не удалось проанализировать фото. Попробуйте ещё раз.');
+    expect(describeFailure()).toBe('Could not analyse the photo. Try again.');
   });
 });
 

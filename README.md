@@ -1,6 +1,6 @@
 # Defish Web Demo
 
-Single-page web client of **Defish**: upload a photo of an aquarium (HEIC from a phone is fine), see every detected fish outlined on the picture, and click a fish to get its diagnosis, the model's confidence, how sure the model is, and care advice. It talks to the Defish API ([`Defish-backend`](https://github.com/George2199/Defish-backend)); the models behind it are described in [`Defish-ML-train`](https://github.com/George2199/Defish-ML-train). The interface is in Russian, because the application targets Russian-speaking aquarists.
+Single-page web client of **Defish**: upload a photo of an aquarium (HEIC from a phone is fine), see every detected fish outlined on the picture, and click a fish to get its diagnosis, the model's confidence, how sure the model is, and care advice. It talks to the Defish API ([`Defish-backend`](https://github.com/George2199/Defish-backend)); the models behind it are described in [`Defish-ML-train`](https://github.com/George2199/Defish-ML-train).
 
 > **Not a veterinary tool.** The classes and advice are hints from a small model.
 
@@ -10,7 +10,7 @@ Single-page web client of **Defish**: upload a photo of an aquarium (HEIC from a
 
 ## What this project demonstrates
 
-- **A client that behaves when things go wrong.** With the API killed in the middle of a wait, the previous version sent 932 requests in 1.4 s and then blamed the "waiting time"; this one sent 4 and said, after 4.3 s, that the server cannot be reached. A failed analysis used to leave the spinner turning; now the reason is on screen in 0.1 s. [Measurements](docs/measurements/behaviour-old-and-new.txt)
+- **A client that behaves when things go wrong.** With the API killed in the middle of a wait, the previous version sent 932 requests in 1.4 s and then blamed the "waiting time"; this one sent 5 and said, after 4.3 s, that the server cannot be reached. A failed analysis used to leave the spinner turning; now the reason is on screen in 0.1 s. [Measurements](docs/measurements/behaviour-old-and-new.txt)
 - **HEIC in the browser.** A real HEIC file is converted to JPEG on the page and uploaded as `aquarium.jpg` / `image/jpeg` (read back from the backend); the 3 MB decoder is loaded only for HEIC files, the rest of the page is 100 kB gzip. [Why](docs/design-decisions.md#1-heic-is-converted-in-the-browser)
 - **Honest about the model.** The panel shows the model's `uncertain` flag and its three most probable classes, which the previous client dropped.
 - **Defects found by running it, then fixed and measured:** a WebGL context per mouse move while dragging the panel (20 per drag, now 0), a blank page without WebGL, uploads over 1 MB refused by the nginx template. [List](docs/design-decisions.md#fixed-while-preparing-these-documents)
@@ -54,7 +54,7 @@ All analysis happens on the server. The page has three jobs: get a photo to the 
 
 ![The page while the analysis runs: a rotating ring with a cross where the run button was](docs/media/analysing.png)
 
-![A 5-second recording of pressing the cancel button and the note "Анализ отменён." appearing](docs/media/cancel-analysis.gif)
+![A 5-second recording of pressing the cancel button and the note "Analysis canceled." appearing](docs/media/cancel-analysis.gif)
 
 *Analysing, and cancelling.*
 
@@ -65,28 +65,28 @@ All analysis happens on the server. The page has three jobs: get a photo to the 
 
 *Boxes on the four fish of the sample picture (canned classes: two healthy, `fin_rot`, `oodiniosis`).*
 
-- A side panel for the clicked fish: the crop, the class (or "Здоров"), the confidence, a note when the model is unsure, the three most probable classes and the advice. Its edge can be dragged (200 to 800 px), and on a phone it takes the whole screen. [How](docs/design-decisions.md#4-the-crop-is-cut-in-the-browser)
+- A side panel for the clicked fish: the crop, the class (or "Healthy"), the confidence, a note when the model is unsure, the three most probable classes and the advice. Its edge can be dragged (200 to 800 px), and on a phone it takes the whole screen. [How](docs/design-decisions.md#4-the-crop-is-cut-in-the-browser)
 
-![Panel of a fin-rot fish: crop, red class badge, 88 % confidence, three probable classes, advice in Russian](docs/media/panel-sick-fish.png)
+![Panel of a fin-rot fish: crop, red class badge, 88 % confidence, three probable classes, advice](docs/media/panel-sick-fish.png)
 
 ![Panel of an uncertain fish: crop, oodiniosis badge, 62 % confidence, an amber note that the model is not sure, three probable classes](docs/media/panel-uncertain-fish.png)
 
-![Panel of a healthy fish: crop, green badge "Здоров", 93 % confidence](docs/media/panel-healthy-fish.png)
+![Panel of a healthy fish: crop, green badge "Healthy", 93 % confidence](docs/media/panel-healthy-fish.png)
 
-*Three panels: a sick fish, a fish the model is unsure about, a healthy fish. The advice is the backend's fixed Russian text for the class.*
+*Three panels: a sick fish, a fish the model is unsure about, a healthy fish. The advice is the backend's fixed text for the class.*
 
 **When something goes wrong**
 - Readable messages for a failed analysis, a file over the limit and an unreachable server. [Table](docs/design-decisions.md#5-errors-are-turned-into-sentences)
 
-![Error under the form: "Сервис распознавания вернул ошибку (HTTP 500)."](docs/media/error-analysis-failed.png)
+![Error under the form: "The recognition service returned an error (HTTP 500)."](docs/media/error-analysis-failed.png)
 
-![Error under the form: "Файл слишком большой (максимум 10 МБ)."](docs/media/error-file-too-large.png)
+![Error under the form: "File is too large (maximum 10 MB)."](docs/media/error-file-too-large.png)
 
 *A failed analysis (the mock answers 500) and a refused upload (an 11 MB file).*
 
 - If the API no longer has the photo, the diagnosis is still shown, as buttons. [Why](docs/design-decisions.md#7-a-result-survives-the-loss-of-its-photo)
 
-![A result card with the note that the photo is no longer available and four buttons: Здоров 93 %, fin_rot 88 %, oodiniosis 62 %, Здоров 91 %](docs/media/photo-unavailable.png)
+![A result card with the note that the photo is no longer available and four buttons: Healthy 93 %, fin_rot 88 %, oodiniosis 62 %, Healthy 91 %](docs/media/photo-unavailable.png)
 
 *The API answer with `original_image` set to `null` by the capture script (see [CREDITS](docs/media/CREDITS.md)).*
 
@@ -130,10 +130,10 @@ What matters for a client is what it does when the network, the server or the da
 
 | Situation | Before | After |
 |---|---|---|
-| the analysis fails on the server | spinner for the whole 25 s observed, 25 requests, no message | message after 0.1 s: "Сервис распознавания вернул ошибку (HTTP 500)." |
-| the API is killed while the page waits | 932 requests in 1.4 s, then "Превышено время ожидания результата" (not true), 454,290 characters in the console | 4 requests, after 4.3 s: "Не удалось связаться с сервером. Проверьте соединение." |
-| a file over the limit (11 MB) | "Request failed with status code 413" | "Файл слишком большой (максимум 10 МБ)." |
-| cancel pressed during the analysis | no note, one more request after the click | "Анализ отменён.", no more requests |
+| the analysis fails on the server | spinner for the whole 25 s observed, 25 requests, no message | message after 0.1 s: "The recognition service returned an error (HTTP 500)." |
+| the API is killed while the page waits | 932 requests in 1.4 s, then a message that the waiting time was exceeded (not true), 454,290 characters in the console | 5 requests, after 4.3 s: "Could not reach the server. Check your connection." |
+| a file over the limit (11 MB) | "Request failed with status code 413" | "File is too large (maximum 10 MB)." |
+| cancel pressed during the analysis | no note, one more request after the click | "Analysis canceled.", no more requests |
 | `VITE_API_URL` not set | upload to `<origin>/undefined/analyze`, 404 | upload to `<origin>/api/analyze` |
 | one normal analysis, console output | 138,393 characters (the whole result with the photo, written on every render) | 158 |
 | dragging the panel edge, 20 mouse moves | 20 new WebGL contexts | 0 |
@@ -242,7 +242,7 @@ A static build served by nginx with `/api/` proxied to the backend on the same h
 ## Limitations
 
 - **Never shown a real model's output or a real phone's photo.** Every screenshot comes from the mock inference service; the boxes are right because the mock knows where the fish were drawn. HEIC was tested with one small file made by a library, not with an iPhone photo.
-- **One language.** The interface is Russian only; strings are in the components.
+- **One language.** The interface is English only; strings are in the components.
 - **Not accessible.** The boxes are SVG rectangles without keyboard focus or labels, and differ by colour only (green / red); the result image has no `alt`.
 - **No pre-check of the upload.** A file over the backend's limit is sent first and refused after; the message is clear but the upload time is spent.
 - **Polling.** One request per second per open analysis, five minutes at most; after the backend's one-hour result lifetime the same id reads as "processing" again.
@@ -274,7 +274,7 @@ flowchart LR
 | [`Defish-ML-train`](https://github.com/George2199/Defish-ML-train) | data work, training and leak-free evaluation of the detector and the classifier; produces the model files |
 | [`Defish-inference`](https://github.com/George2199/Defish-inference) | inference service: letterboxed YOLOv8s detector and DINOv2 + linear classifier on ONNX Runtime, with a confidence gate |
 | [`Defish-backend`](https://github.com/George2199/Defish-backend) | API: upload, task queue, workers, result cache, persistence |
-| `Defish-frontend` (this) | web client: upload, detections drawn over the photo, per-fish diagnosis (Russian interface) |
+| `Defish-frontend` (this) | web client: upload, detections drawn over the photo, per-fish diagnosis |
 
 Shared terms: a **detection** is a box around one fish; a **diagnosis** is one of seven classes (`healthy`, `fin_rot`, `dermatomycosis`, `hexamitosis`, `mycobacteriosis`, `oodiniosis`, `plistophorosis`);
 **uncertain** marks a classification whose confidence is below the gate (0.83); **AP50** is average precision at an intersection-over-union of 0.5; a **leak-free split** groups images by source post, so that no tank appears on both sides.

@@ -4,7 +4,7 @@ Why the page works the way it does, what it replaced, and what was measured. *Me
 and its **mock** inference service. Each is one run; large differences are the point, small ones are noise.
 
 Contents: [1](#1-heic-is-converted-in-the-browser) · [2](#2-the-page-polls-with-limits-instead-of-waiting-forever) · [3](#3-boxes-are-an-svg-over-the-photo) · [4](#4-the-crop-is-cut-in-the-browser) · [5](#5-errors-are-turned-into-sentences) ·
-[6](#6-the-model-is-allowed-to-say-it-is-not-sure) · [7](#7-a-result-survives-the-loss-of-its-photo) · [8](#8-the-background-never-takes-the-page-down) · [9](#9-same-origin-by-default) · [10](#10-the-interface-is-russian-and-the-code-says-so) ·
+[6](#6-the-model-is-allowed-to-say-it-is-not-sure) · [7](#7-a-result-survives-the-loss-of-its-photo) · [8](#8-the-background-never-takes-the-page-down) · [9](#9-same-origin-by-default) · [10](#10-the-interface-is-english-and-the-code-says-so) ·
 [Fixed while preparing these documents](#fixed-while-preparing-these-documents) · [Considered and not done](#considered-and-not-done)
 
 ## 1. HEIC is converted in the browser
@@ -23,9 +23,9 @@ Contents: [1](#1-heic-is-converted-in-the-browser) · [2](#2-the-page-polls-with
 
 | Situation | Before | Now |
 |---|---|---|
-| the analysis fails on the server (`status: "failed"`) | the spinner turned for the whole 25 s of the observation, 25 requests, no message | message after 0.1 s: "Сервис распознавания вернул ошибку (HTTP 500)." |
-| the API stops answering | 932 requests in 1.4 s (no pause after errors), then "Превышено время ожидания результата" ("waiting time exceeded", not true), 454,290 characters in the console | 4 requests, message after 4.3 s: "Не удалось связаться с сервером. Проверьте соединение." |
-| cancel pressed | no note, one more request after the click | "Анализ отменён." and no more requests |
+| the analysis fails on the server (`status: "failed"`) | the spinner turned for the whole 25 s of the observation, 25 requests, no message | message after 0.1 s: "The recognition service returned an error (HTTP 500)." |
+| the API stops answering | 932 requests in 1.4 s (no pause after errors), then a message that the waiting time was exceeded (not true), 454,290 characters in the console | 5 requests, message after 4.3 s: "Could not reach the server. Check your connection." |
+| cancel pressed | no note, one more request after the click | "Analysis canceled." and no more requests |
 
 **Decision details.** Five failed requests in a row end the wait; one good answer resets the count; about five minutes at most (the inference call itself may take up to 180 s, and the queue adds to it).
 Cancel aborts the page's own request and tells the server; the server cannot stop a running model, so the worker stays busy until it returns.
@@ -41,16 +41,16 @@ The panel shows the fish that was clicked. The page already holds the full photo
 
 ## 5. Errors are turned into sentences
 
-`axios` messages such as "Request failed with status code 413" are useless to a person. `describeError` and `describeFailure` ([src/api.js](../src/api.js)) map what the backend says to Russian sentences: file too large (with the limit parsed from the backend's `detail`), file not accepted (422), server unavailable (5xx), no connection, and the four failure texts of a task.
-Everything unknown becomes "Не удалось выполнить анализ." The technical error stays in the console.
+`axios` messages such as "Request failed with status code 413" are useless to a person. `describeError` and `describeFailure` ([src/api.js](../src/api.js)) map what the backend says to plain sentences: file too large (with the limit parsed from the backend's `detail`), file not accepted (422), server unavailable (5xx), no connection, and the four failure texts of a task.
+Everything unknown becomes "Could not complete the analysis." The technical error stays in the console.
 
 ## 6. The model is allowed to say it is not sure
 
-The inference service marks a classification `uncertain` when its confidence is below a gate, and returns the three most probable classes. The old client ignored both, so a weak guess looked like a verdict. The panel now shows a note ("Модель не уверена в этом результате: считайте его подсказкой.") and the top three with their probabilities. The box colour is unchanged (green / red by class).
+The inference service marks a classification `uncertain` when its confidence is below a gate, and returns the three most probable classes. The old client ignored both, so a weak guess looked like a verdict. The panel now shows a note ("The model is not sure about this result: treat it as a hint.") and the top three with their probabilities. The box colour is unchanged (green / red by class).
 
 ## 7. A result survives the loss of its photo
 
-The backend keeps the photo apart from the result and for a limited time. If the photo has expired the answer still has the diagnosis. The old page then drew an empty "Результат анализа:" box and nothing else. Now it says that the photo is gone and lists the detections as buttons; the panel opens without a crop.
+The backend keeps the photo apart from the result and for a limited time. If the photo has expired the answer still has the diagnosis. The old page then drew an empty "Analysis result:" box and nothing else. Now it says that the photo is gone and lists the detections as buttons; the panel opens without a crop.
 Checked in the browser with a real API answer whose `original_image` was set to `null` ([photo-unavailable.png](media/photo-unavailable.png)); covered by a test.
 
 ## 8. The background never takes the page down
@@ -62,10 +62,10 @@ See [architecture.md](architecture.md#the-background). Two defects were *measure
 `VITE_API_URL` is optional and defaults to `/api`, which is what the nginx template serves. Before, an unset variable sent uploads to `<origin>/undefined/analyze` (*measured*, answer 404, text "Request failed with status code 404").
 For development against another port set `VITE_API_URL=http://127.0.0.1:8001` (the backend allows any origin).
 
-## 10. The interface is Russian, and the code says so
+## 10. The interface is English, and the code says so
 
-Strings are written in the components; there is no translation layer. The application targets Russian-speaking aquarists and the advice texts come from the backend in Russian. The README and these documents are English; captions of the screenshots translate the interface.
-`index.html` declares `lang="ru"` (it said `en`).
+Strings are written in the components; there is no translation layer. The interface, the error texts and the advice that comes from the backend are all English, like the README and these documents. (The first versions of the page and of the backend were Russian; everything was switched to English on 2026-10-06, and the screenshots were taken again.)
+`index.html` declares `lang="en"`.
 
 ## Fixed while preparing these documents
 
@@ -88,13 +88,13 @@ Found by running the page, not by reading it. Behaviour table: [behaviour-old-an
 | `npm start` used `react-scripts`, which is not installed | by reading `package.json` | removed |
 | lint failed (unused `isCanceled`, `process` undefined) | `eslint .`: 3 errors | clean |
 | `axios` and two indirect dependencies had advisories | `npm audit --omit=dev`: 3 (2 high, 1 moderate) | 0 after `npm audit fix` (axios 1.20.0) |
-| `index.html` said `lang="en"` for a Russian page | by reading | `ru` |
+| `index.html` said `lang="en"` over a Russian interface | by reading | `ru`; back to `en` when the interface became English |
 
 ## Considered and not done
 
 | Idea | Why not (yet) |
 |---|---|
-| translations | one language is enough for the target audience; strings would move to a catalogue |
+| translations | one language (English) is enough for now; strings would move to a catalogue |
 | keyboard and screen-reader access to the boxes, a colour-blind-safe scheme | the boxes are `<rect>`s without roles or labels and differ by colour only; needs a design |
 | checking file type and size in the page before the upload | the backend refuses with a clear status and the page now shows it; a pre-check would duplicate the limit |
 | server-sent events instead of polling | see 2 |

@@ -10,6 +10,8 @@
 #   api_dies_while_polling         the API container is killed 0.8 s after the upload; the page keeps polling
 #   cancel_during_analysis         the cancel button 1.5 s into a 3 s analysis; requests are counted after the click
 #   api_address_not_configured     a dev server started without VITE_API_URL
+# Note 2026-10-06: the OLD run is the original of 2026-10-04; its one Russian message is translated by hand (the old client was Russian).
+# The NEW run was repeated on 2026-10-06 (same stack, same scenarios) because the interface texts changed to English; its numbers differ slightly from the run of 2026-10-04.
 
 ######## OLD (commit 91b9954)
 {
@@ -42,7 +44,7 @@
   "errorShown": true,
   "secondsUntilError": 1.4,
   "requestsWhileApiWasDown": 932,
-  "errorText": "Превышено время ожидания результата",
+  "errorText": "Timed out waiting for the result",
   "spinnerAtEnd": false,
   "requestsForResults": 1000,
   "consoleCharacters": 454290,
@@ -67,41 +69,41 @@
  }
 }
 
-######## NEW (this working tree)
+######## NEW (this working tree, re-run 2026-10-06 after the interface became English)
 {
  "normal": {
   "boxesDrawn": 4,
   "requestsForResults": 1,
   "consoleCharacters": 158,
   "uploadWentTo": "<origin>/analyze",
-  "seconds": 0.5
+  "seconds": 0.4
  },
  "analysis_failed_on_the_server": {
   "errorShown": true,
   "secondsUntilError": 0.1,
-  "errorText": "Сервис распознавания вернул ошибку (HTTP 500).",
+  "errorText": "The recognition service returned an error (HTTP 500).",
   "spinnerAtEnd": false,
   "requestsForResults": 1,
-  "consoleCharacters": 394,
+  "consoleCharacters": 376,
   "uploadWentTo": "<origin>/analyze",
-  "seconds": 0.3
+  "seconds": 0.4
  },
  "file_over_the_limit_413": {
-  "errorText": "Файл слишком большой (максимум 10 МБ).",
+  "errorText": "File is too large (maximum 10 MB).",
   "spinnerAtEnd": false,
   "requestsForResults": 0,
-  "consoleCharacters": 779,
+  "consoleCharacters": 754,
   "uploadWentTo": "<origin>/analyze",
   "seconds": 0.4
  },
  "api_dies_while_polling": {
   "errorShown": true,
   "secondsUntilError": 4.3,
-  "requestsWhileApiWasDown": 4,
-  "errorText": "Не удалось связаться с сервером. Проверьте соединение.",
+  "requestsWhileApiWasDown": 5,
+  "errorText": "Could not reach the server. Check your connection.",
   "spinnerAtEnd": false,
   "requestsForResults": 6,
-  "consoleCharacters": 663,
+  "consoleCharacters": 634,
   "uploadWentTo": "<origin>/analyze",
   "seconds": 11.9
  },
@@ -112,12 +114,12 @@
   "requestsForResults": 2,
   "consoleCharacters": 158,
   "uploadWentTo": "<origin>/analyze",
-  "seconds": 5.5
+  "seconds": 5.7
  },
  "api_address_not_configured": {
-  "errorText": "Не удалось выполнить анализ.",
+  "errorText": "Could not complete the analysis.",
   "requestsForResults": 0,
-  "consoleCharacters": 732,
+  "consoleCharacters": 739,
   "uploadWentTo": "<origin>/api/analyze",
   "seconds": 0.3
  }
