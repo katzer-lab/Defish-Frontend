@@ -14,7 +14,7 @@ Single-page web client of **Defish**: upload a photo of an aquarium (HEIC from a
 - **HEIC in the browser.** A real HEIC file is converted to JPEG on the page and uploaded as `aquarium.jpg` / `image/jpeg` (read back from the backend); the 3 MB decoder is loaded only for HEIC files, the rest of the page is 100 kB gzip. [Why](docs/design-decisions.md#1-heic-is-converted-in-the-browser)
 - **Honest about the model.** The panel shows the model's `uncertain` flag and its three most probable classes, which the previous client dropped.
 - **Defects found by running it, then fixed and measured:** a WebGL context per mouse move while dragging the panel (20 per drag, now 0), a blank page without WebGL, uploads over 1 MB refused by the nginx template. [List](docs/design-decisions.md#fixed-while-preparing-these-documents)
-- **35 tests in about a second** (Vitest, Testing Library, jsdom). Honest about what it lacks: no real model behind any screenshot, one language, no keyboard access to the boxes. See [Limitations](#limitations).
+- **44 tests in about a second** (Vitest, Testing Library, jsdom). Honest about what it lacks: no real model behind any screenshot, one language, no keyboard access to the boxes. See [Limitations](#limitations).
 
 ## Contents
 
@@ -65,11 +65,11 @@ All analysis happens on the server. The page has three jobs: get a photo to the 
 
 *Boxes on the four fish of the sample picture (canned classes: two healthy, `fin_rot`, `oodiniosis`).*
 
-- A side panel for the clicked fish: the crop, the class (or "Healthy"), the confidence, a note when the model is unsure, the three most probable classes and the advice. Its edge can be dragged (200 to 800 px), and on a phone it takes the whole screen. [How](docs/design-decisions.md#4-the-crop-is-cut-in-the-browser)
+- A side panel for the clicked fish: the crop, the class name ("Fin rot", "Healthy", ...), the confidence, a note when the model is unsure, the three most probable classes and the advice. Its edge can be dragged (200 to 800 px), and on a phone it takes the whole screen. [How](docs/design-decisions.md#4-the-crop-is-cut-in-the-browser)
 
 ![Panel of a fin-rot fish: crop, red class badge, 88 % confidence, three probable classes, advice](docs/media/panel-sick-fish.png)
 
-![Panel of an uncertain fish: crop, oodiniosis badge, 62 % confidence, an amber note that the model is not sure, three probable classes](docs/media/panel-uncertain-fish.png)
+![Panel of an uncertain fish: crop, "Oodiniosis" badge, 62 % confidence, an amber note that the model is not sure, three probable classes](docs/media/panel-uncertain-fish.png)
 
 ![Panel of a healthy fish: crop, green badge "Healthy", 93 % confidence](docs/media/panel-healthy-fish.png)
 
@@ -86,7 +86,7 @@ All analysis happens on the server. The page has three jobs: get a photo to the 
 
 - If the API no longer has the photo, the diagnosis is still shown, as buttons. [Why](docs/design-decisions.md#7-a-result-survives-the-loss-of-its-photo)
 
-![A result card with the note that the photo is no longer available and four buttons: Healthy 93 %, fin_rot 88 %, oodiniosis 62 %, Healthy 91 %](docs/media/photo-unavailable.png)
+![A result card with the note that the photo is no longer available and four buttons: Healthy 93 %, Fin rot 88 %, Oodiniosis 62 %, Healthy 91 %](docs/media/photo-unavailable.png)
 
 *The API answer with `original_image` set to `null` by the capture script (see [CREDITS](docs/media/CREDITS.md)).*
 
@@ -154,7 +154,7 @@ Requirements: Node 20.19+ or 22.12+ (the requirement of Vite 7; checked with Nod
 ```bash
 git clone https://github.com/George2199/Defish-frontend.git && cd Defish-frontend
 npm ci
-npm test               # 35 tests, about a second
+npm test               # 44 tests, about a second
 npm run lint
 npm run build          # dist/
 ```
@@ -206,16 +206,17 @@ Checked against the code with `grep -rn "import.meta.env\|process.env" src vite.
 src/
   App.jsx          the page: file choice, preview, HEIC, upload / cancel, result view, side panel
   api.js           address, upload, cancel, polling, readable error texts
+  classLabels.js   display names of the classes ("Fin rot", "Healthy", ...)
   Lightfall.jsx    WebGL background
   App.css, index.css, Lightfall.css
-  *.test.js(x), test/setup.js     35 tests
+  *.test.js(x), test/setup.js     44 tests
 nginx/             static files + API proxy template
 public/            logo.png, cancel.png
 docs/              architecture, design decisions, deployment, measurements/, capture/ (scripts), media/, examples/
 index.html, vite.config.js (Vite + Vitest), eslint.config.js, package.json, package-lock.json, LICENSE
 ```
 
-About 1,400 lines in `src` (CSS and the 370-line WebGL component included), 470 of tests.
+About 1,400 lines in `src` (CSS and the 370-line WebGL component included), 495 of tests.
 
 ## Tests and quality
 
@@ -228,6 +229,7 @@ npm run lint     # eslint .
 |---|---|---|
 | `src/api.test.js` | 22 | polling (result, canceled, the four failure texts, pause after errors, five failures in a row, a good answer resets the count, timeout, abort before and during), error texts per status, the address with and without `VITE_API_URL`, upload and cancel requests |
 | `src/App.test.jsx` | 11 | disabled button and thumbnail, HEIC conversion (quality, file name, waits for the conversion), boxes (colours, scaling), cache hit without polling, the panel (crop coordinates, note, top three), closing, dragging the edge with limits, no photo, cancel, failed analysis, 413 |
+| `src/classLabels.test.js` | 9 | the display name of each of the seven classes, an unknown code, a missing code |
 | `src/Lightfall.test.jsx` | 2 | the background is created once across re-renders; a failing renderer does not break the page |
 
 The API is replaced by mocks (`axios`, and `api.js` in the page tests), WebGL by a fake `ogl`, the HEIC decoder by a stub, layout by stubbed image sizes. Sixteen deliberate regressions (no pause after errors, ignoring `failed`, unscaled boxes, the wrong crop, unclamped panel, a new colours array on every render, and so on) were each caught by a failing test; done by hand, not with a mutation-testing tool.

@@ -64,7 +64,7 @@ For development against another port set `VITE_API_URL=http://127.0.0.1:8001` (t
 
 ## 10. The interface is English, and the code says so
 
-Strings are written in the components; there is no translation layer. The interface, the error texts and the advice that comes from the backend are all English, like the README and these documents. (The first versions of the page and of the backend were Russian; everything was switched to English on 2026-10-06, and the screenshots were taken again.)
+Strings are written in the components; there is no translation layer. The interface, the error texts and the advice that comes from the backend are all English, like the README and these documents. The class codes the API sends (`fin_rot`, `oodiniosis`, ...) are turned into names by a small table in [src/classLabels.js](../src/classLabels.js); the colour logic still works on the codes. (The first versions of the page and of the backend were Russian; everything was switched to English on 2026-10-06, and the screenshots were taken again.)
 `index.html` declares `lang="en"`.
 
 ## Fixed while preparing these documents

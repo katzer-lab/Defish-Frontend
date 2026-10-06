@@ -138,11 +138,12 @@ describe('result', () => {
     fireEvent.click(sick);
 
     expect(await screen.findByText('Diagnosis')).toBeInTheDocument();
-    expect(screen.getByText('fin_rot', { selector: '.diagnosis-badge' })).toBeInTheDocument();
+    expect(screen.getByText('Fin rot', { selector: '.diagnosis-badge' })).toBeInTheDocument();
     expect(screen.getByText('62.0%')).toBeInTheDocument();
     expect(screen.getByText('Fin rot.', { selector: '.recommendations p' })).toBeInTheDocument();
     expect(screen.getByText(/not sure about this result/)).toBeInTheDocument();
-    expect(screen.getByText('healthy: 30.0%')).toBeInTheDocument();
+    expect(screen.getByText('Healthy: 30.0%')).toBeInTheDocument();
+    expect(screen.getByText('Oodiniosis: 8.0%')).toBeInTheDocument();
     // the crop is cut from the original photo at natural coordinates
     expect(drawImage).toHaveBeenCalledWith(photo(), 320, 200, 80, 60, 0, 0, 80, 60);
     expect(document.querySelector('.diagnosis-img')).toHaveAttribute('src', 'data:image/jpeg;base64,CROP');
@@ -185,7 +186,7 @@ describe('result', () => {
 
     expect(screen.getByText(/no longer available/)).toBeInTheDocument();
     expect(photo()).toBeNull();
-    fireEvent.click(screen.getByText(/fin_rot · 62.0%/));
+    fireEvent.click(screen.getByText(/Fin rot · 62.0%/));
     expect(await screen.findByText('Diagnosis')).toBeInTheDocument();
     expect(document.querySelector('.diagnosis-img')).toBeNull();   // no crop without the photo
   });

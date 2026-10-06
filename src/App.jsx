@@ -2,6 +2,7 @@
 import { useRef, useState, useEffect } from 'react';
 import Lightfall from './Lightfall';
 import { submitPhoto, pollResult, cancelTask, describeError, isAborted } from './api';
+import { classLabel } from './classLabels';
 import './App.css';
 
 // Outside the component: a new array on every render would make Lightfall recreate the WebGL context.
@@ -333,7 +334,7 @@ useEffect(() => {
                 <li key={i}>
                   <button type="button" className={`detection-item ${det.classification_class === 'healthy' ? 'healthy' : 'sick'}`}
                           onClick={() => handleDetClick(det)}>
-                    {det.classification_class === 'healthy' ? 'Healthy' : det.classification_class}
+                    {classLabel(det.classification_class)}
                     {' · '}{(det.classification_confidence * 100).toFixed(1)}%
                   </button>
                 </li>
@@ -362,7 +363,7 @@ useEffect(() => {
             />
           )}
           <div className={`diagnosis-badge ${selectedDet.classification_class === 'healthy' ? 'healthy' : 'sick'}`}>
-            {selectedDet.classification_class === 'healthy' ? 'Healthy' : `${selectedDet.classification_class}`}
+            {classLabel(selectedDet.classification_class)}
           </div>
           <p><strong>Confidence:</strong> {(selectedDet.classification_confidence * 100).toFixed(1)}%</p>
           {selectedDet.uncertain && (
@@ -373,7 +374,7 @@ useEffect(() => {
               <strong>Most probable classes:</strong>
               <ul>
                 {selectedDet.top3.map((item) => (
-                  <li key={item.label}>{item.label}: {(item.confidence * 100).toFixed(1)}%</li>
+                  <li key={item.label}>{classLabel(item.label)}: {(item.confidence * 100).toFixed(1)}%</li>
                 ))}
               </ul>
             </div>
