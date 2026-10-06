@@ -115,7 +115,7 @@ The sequence of one analysis and the polling rules are in [docs/architecture.md]
 | Decision | Reason |
 |---|---|
 | convert HEIC in the browser, on demand | browsers cannot show HEIC and the analysis service cannot read it; 3 MB only for those who need it |
-| poll once a second, with a pause after errors, a limit of five failures in a row and about five minutes | every way the wait ends is a message; a down server is not hit in a tight loop |
+| poll once a second, with a pause after errors, a limit of five failures in a row and about seven minutes | every way the wait ends is a message; a down server is not hit in a tight loop |
 | boxes as an SVG over the `<img>`, scaled by displayed / natural size | clickable, follows resizing through a `ResizeObserver` |
 | crop with a canvas from the photo already in memory | no request, works for cached results |
 | translate the backend's short error texts | "Request failed with status code 413" helps nobody |
@@ -245,7 +245,7 @@ A static build served by nginx with `/api/` proxied to the backend on the same h
 - **One language.** The interface is English only; strings are in the components.
 - **Not accessible.** The boxes are SVG rectangles without keyboard focus or labels, and differ by colour only (green / red); the result image has no `alt`.
 - **No pre-check of the upload.** A file over the backend's limit is sent first and refused after; the message is clear but the upload time is spent.
-- **Polling.** One request per second per open analysis, five minutes at most; after the backend's one-hour result lifetime the same id reads as "processing" again.
+- **Polling.** One request per second per open analysis, seven minutes at most; after the backend's one-hour result lifetime the same id reads as "processing" again.
 - **Cancel does not stop the model.** It stops the page's wait and tells the server; the worker finishes its call.
 - **The photo is held in the page as base64** (the API returns it inside the result) and drawn at most 800 x 600 CSS pixels.
 - **Large photos are the backend's weak spot** (results can be evicted from its Redis, uploads can fail under many concurrent large files); see its README. The page shows a message in each case but cannot fix them.

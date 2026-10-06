@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 export const POLL_INTERVAL_MS = 1000;
-export const POLL_MAX_ATTEMPTS = 300;          // about five minutes at one request per second
+export const POLL_MAX_ATTEMPTS = 420;          // about seven minutes at one request per second
 export const POLL_MAX_CONSECUTIVE_ERRORS = 5;  // failed polls in a row before giving up
 const POLL_REQUEST_TIMEOUT_MS = 30 * 1000;
 const UPLOAD_TIMEOUT_MS = 2 * 60 * 1000;

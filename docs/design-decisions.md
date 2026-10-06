@@ -27,7 +27,7 @@ Contents: [1](#1-heic-is-converted-in-the-browser) · [2](#2-the-page-polls-with
 | the API stops answering | 932 requests in 1.4 s (no pause after errors), then a message that the waiting time was exceeded (not true), 454,290 characters in the console | 5 requests, message after 4.3 s: "Could not reach the server. Check your connection." |
 | cancel pressed | no note, one more request after the click | "Analysis canceled." and no more requests |
 
-**Decision details.** Five failed requests in a row end the wait; one good answer resets the count; about five minutes at most (the inference call itself may take up to 180 s, and the queue adds to it).
+**Decision details.** Five failed requests in a row end the wait; one good answer resets the count; about seven minutes at most (the inference call itself may take up to 300 s, and the queue adds to it).
 Cancel aborts the page's own request and tells the server; the server cannot stop a running model, so the worker stays busy until it returns.
 
 ## 3. Boxes are an SVG over the photo

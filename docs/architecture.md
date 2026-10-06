@@ -37,7 +37,7 @@ sequenceDiagram
         S-->>A: the result itself
     else new photo
         S-->>A: {task_id}
-        loop every second, at most 300 times
+        loop every second, at most 420 times
             A->>S: GET /analyze-result/{task_id}
             S-->>A: processing / failed / canceled / result
         end
@@ -64,13 +64,13 @@ stateDiagram-v2
     Asking --> Retrying: request error
     Retrying --> Waiting: fewer than 5 in a row
     Retrying --> GaveUp: 5 in a row
-    Waiting --> TimedOut: 300 attempts
+    Waiting --> TimedOut: 420 attempts
     Asking --> Aborted: signal aborted
     Waiting --> Aborted: signal aborted
 ```
 
 Rules, all in `pollResult` ([src/api.js](../src/api.js)): one request per second; a pause also after an error (the previous client had none and sent 932 requests in 1.4 s to an API that was down, *measured*, [behaviour](measurements/behaviour-old-and-new.txt));
-five failed requests in a row end the wait with a message chosen by the kind of error; a good answer resets the count; about five minutes in total. Every request has a 30 s timeout, the upload 2 minutes.
+five failed requests in a row end the wait with a message chosen by the kind of error; a good answer resets the count; about seven minutes in total. Every request has a 30 s timeout, the upload 2 minutes.
 
 ## What the page reads from the API
 
