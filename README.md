@@ -1,6 +1,6 @@
 # Defish Web Demo
 
-Single-page web client of **Defish**: upload a photo of an aquarium (HEIC from a phone is fine), see every detected fish outlined on the picture, and click a fish to get its diagnosis, the model's confidence, how sure the model is, and care advice. It talks to the Defish API ([`Defish-backend`](https://github.com/George2199/Defish-backend)); the models behind it are described in [`Defish-ML-train`](https://github.com/George2199/Defish-ML-train).
+Single-page web client of [**Defish**](https://defish.katzer.ru/): upload a photo of an aquarium (HEIC from a phone is fine), see every detected fish outlined on the picture, and click a fish to get its diagnosis, the model's confidence, how sure the model is, and care advice. It talks to the Defish API ([`Defish-backend`](https://github.com/George2199/Defish-backend)); the models behind it are described in [`Defish-ML-train`](https://github.com/George2199/Defish-ML-train).
 
 > **Not a veterinary tool.** The classes and advice are hints from a small model.
 
