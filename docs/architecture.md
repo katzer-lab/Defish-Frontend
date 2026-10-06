@@ -74,7 +74,7 @@ five failed requests in a row end the wait with a message chosen by the kind of 
 
 ## What the page reads from the API
 
-Routes: `POST /analyze`, `GET /analyze-result/{task_id}`, `POST /cancel/{task_id}`. Reference: the backend's [docs/api.md](https://github.com/George2199/fish-demo_backend/blob/master/docs/api.md). The address is `VITE_API_URL`, `/api` when it is not set.
+Routes: `POST /analyze`, `GET /analyze-result/{task_id}`, `POST /cancel/{task_id}`. Reference: the backend's [docs/api.md](https://github.com/George2199/Defish-backend/blob/master/docs/api.md). The address is `VITE_API_URL`, `/api` when it is not set.
 
 | Answer | What the page does |
 |---|---|
@@ -109,7 +109,7 @@ Not used: `diagnosis`, `confidence` and `recommendations` of the whole photo, `i
 flowchart LR
     B["browser"] -->|"/ and static files"| N["nginx<br/>root = dist/"]
     B -->|"/api/..."| N
-    N -->|"proxy_pass 127.0.0.1:8001"| A["Defish API<br/>(fish-demo_backend)"]
+    N -->|"proxy_pass 127.0.0.1:8001"| A["Defish API<br/>(Defish-backend)"]
 ```
 
 With the nginx template the page and the API share one origin, so the build uses the default `/api` and the browser needs no CORS. Details and the checks of the template: [deployment.md](deployment.md).

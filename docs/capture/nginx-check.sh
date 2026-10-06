@@ -6,7 +6,7 @@ T=${T:-./nginx-test}   # holds old.conf, old_port_only.conf, new.conf, dist/ (th
 head -c 2097152 /dev/urandom > $T/two_mb.jpg   # a 2 MB "photo"
 run() { # name conf port
   docker rm -f nginx_$1 >/dev/null 2>&1
-  docker run -d --name nginx_$1 --network host -v $T/$2:/etc/nginx/conf.d/default.conf:ro -v $T/dist:/path/to/fish-demo_frontend/dist:ro nginx:alpine >/dev/null
+  docker run -d --name nginx_$1 --network host -v $T/$2:/etc/nginx/conf.d/default.conf:ro -v $T/dist:/path/to/Defish-frontend/dist:ro nginx:alpine >/dev/null
   sleep 2
   echo "##### $1 ($2)"
   printf "GET /                : "; curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:$3/

@@ -1,6 +1,6 @@
 # Defish Web Demo
 
-Single-page web client of **Defish**: upload a photo of an aquarium (HEIC from a phone is fine), see every detected fish outlined on the picture, and click a fish to get its diagnosis, the model's confidence, how sure the model is, and care advice. It talks to the Defish API ([`fish-demo_backend`](https://github.com/George2199/fish-demo_backend)); the models behind it are described in [`Defish-ML-train`](https://github.com/George2199/Defish-ML-train). The interface is in Russian, because the application targets Russian-speaking aquarists.
+Single-page web client of **Defish**: upload a photo of an aquarium (HEIC from a phone is fine), see every detected fish outlined on the picture, and click a fish to get its diagnosis, the model's confidence, how sure the model is, and care advice. It talks to the Defish API ([`Defish-backend`](https://github.com/George2199/Defish-backend)); the models behind it are described in [`Defish-ML-train`](https://github.com/George2199/Defish-ML-train). The interface is in Russian, because the application targets Russian-speaking aquarists.
 
 > **Not a veterinary tool.** The classes and advice are hints from a small model.
 
@@ -152,7 +152,7 @@ Requirements: Node 20.19+ or 22.12+ (the requirement of Vite 7; checked with Nod
 **1. Tests, lint and build, no backend needed:**
 
 ```bash
-git clone https://github.com/George2199/fish-demo_frontend.git && cd fish-demo_frontend
+git clone https://github.com/George2199/Defish-frontend.git && cd Defish-frontend
 npm ci
 npm test               # 35 tests, about a second
 npm run lint
@@ -162,7 +162,7 @@ npm run build          # dist/
 **2. The page against a real backend stack with the mock inference service** (the screenshots above were taken this way):
 
 ```bash
-# in a checkout of fish-demo_backend: .env as in its README, then
+# in a checkout of Defish-backend: .env as in its README, then
 MOCK_USE_LAYOUT=1 docker compose -f docker-compose.yml -f docs/examples/docker-compose.mock-ml.yml up -d --build
 
 # in this repository
@@ -198,7 +198,7 @@ Checked against the code with `grep -rn "import.meta.env\|process.env" src vite.
 
 ## What the page asks the API
 
-`POST /analyze`, `GET /analyze-result/{task_id}`, `POST /cancel/{task_id}`; the fields it uses and what it does with each answer are in [docs/architecture.md](docs/architecture.md#what-the-page-reads-from-the-api). The routes themselves are documented in the [backend](https://github.com/George2199/fish-demo_backend/blob/master/docs/api.md).
+`POST /analyze`, `GET /analyze-result/{task_id}`, `POST /cancel/{task_id}`; the fields it uses and what it does with each answer are in [docs/architecture.md](docs/architecture.md#what-the-page-reads-from-the-api). The routes themselves are documented in the [backend](https://github.com/George2199/Defish-backend/blob/master/docs/api.md).
 
 ## Repository layout
 
@@ -262,9 +262,9 @@ A static build served by nginx with `/api/` proxied to the backend on the same h
 
 ```mermaid
 flowchart LR
-  U[photo] --> F["fish-demo_frontend (this)<br/>web client"]
-  F -- "POST /analyze, then poll" --> B[fish-demo_backend<br/>API, queue, workers]
-  B -- "POST /analyze, base64 image" --> I[fish-disease-finder<br/>detector + classifier]
+  U[photo] --> F["Defish-frontend (this)<br/>web client"]
+  F -- "POST /analyze, then poll" --> B[Defish-backend<br/>API, queue, workers]
+  B -- "POST /analyze, base64 image" --> I[Defish-inference<br/>detector + classifier]
   B --- S[(Redis, RabbitMQ,<br/>PostgreSQL)]
   M[Defish-ML-train<br/>data, training, evaluation] -- "ONNX model files" --> I
 ```
@@ -272,9 +272,9 @@ flowchart LR
 | Repository | Role |
 |---|---|
 | [`Defish-ML-train`](https://github.com/George2199/Defish-ML-train) | data work, training and leak-free evaluation of the detector and the classifier; produces the model files |
-| [`fish-disease-finder`](https://github.com/George2199/fish-disease-finder) | inference service: letterboxed YOLOv8s detector and DINOv2 + linear classifier on ONNX Runtime, with a confidence gate |
-| [`fish-demo_backend`](https://github.com/George2199/fish-demo_backend) | API: upload, task queue, workers, result cache, persistence |
-| `fish-demo_frontend` (this) | web client: upload, detections drawn over the photo, per-fish diagnosis (Russian interface) |
+| [`Defish-inference`](https://github.com/George2199/Defish-inference) | inference service: letterboxed YOLOv8s detector and DINOv2 + linear classifier on ONNX Runtime, with a confidence gate |
+| [`Defish-backend`](https://github.com/George2199/Defish-backend) | API: upload, task queue, workers, result cache, persistence |
+| `Defish-frontend` (this) | web client: upload, detections drawn over the photo, per-fish diagnosis (Russian interface) |
 
 Shared terms: a **detection** is a box around one fish; a **diagnosis** is one of seven classes (`healthy`, `fin_rot`, `dermatomycosis`, `hexamitosis`, `mycobacteriosis`, `oodiniosis`, `plistophorosis`);
 **uncertain** marks a classification whose confidence is below the gate (0.83); **AP50** is average precision at an intersection-over-union of 0.5; a **leak-free split** groups images by source post, so that no tank appears on both sides.

@@ -8,7 +8,7 @@ server {
 
     # React build and static files
     location / {
-        root /path/to/fish-demo_frontend/dist;
+        root /path/to/Defish-frontend/dist;
         index index.html;
         try_files $uri $uri/ /index.html;
     }

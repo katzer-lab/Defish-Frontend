@@ -1,6 +1,6 @@
 # Deployment
 
-The page is a static build. Everything dynamic is in the API ([fish-demo_backend](https://github.com/George2199/fish-demo_backend)).
+The page is a static build. Everything dynamic is in the API ([Defish-backend](https://github.com/George2199/Defish-backend)).
 
 Contents: [Build](#build) · [Serving with nginx](#serving-with-nginx) · [Development server](#development-server) · [What was verified](#what-was-verified)
 
@@ -23,7 +23,7 @@ Examples: `VITE_API_URL=http://api.example:8001 npm run build` for an API on ano
 ## Serving with nginx
 
 [`nginx/fish-demo.conf.template`](../nginx/fish-demo.conf.template) serves `dist/` and proxies `/api/` to the API on the same host, so the browser sees one origin.
-Replace `HOST_IP_OR_DOMEN` (`server_name`) and `/path/to/fish-demo_frontend/dist` (`root`), then `nginx -t && nginx -s reload`. The template has no TLS.
+Replace `HOST_IP_OR_DOMEN` (`server_name`) and `/path/to/Defish-frontend/dist` (`root`), then `nginx -t && nginx -s reload`. The template has no TLS.
 
 What it contains and why:
 
@@ -43,7 +43,7 @@ npm run dev -- --host                              # also on the network, for a 
 ```
 
 Vite listens on `127.0.0.1` unless told otherwise. The old `dev` script set `HOST=0.0.0.0`, which Vite ignores (measured: it listened on 127.0.0.1 only), so it was replaced by plain `vite` and the flag above.
-To get a backend to talk to, start the stack of `fish-demo_backend` with its mock inference service (`MOCK_USE_LAYOUT=1`, see the [README](../README.md#quick-start)).
+To get a backend to talk to, start the stack of `Defish-backend` with its mock inference service (`MOCK_USE_LAYOUT=1`, see the [README](../README.md#quick-start)).
 
 ## What was verified
 

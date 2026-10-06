@@ -1,4 +1,4 @@
-// api.js: calls to the Defish API (fish-demo_backend) and the polling loop
+// api.js: calls to the Defish API (Defish-backend) and the polling loop
 import axios from 'axios';
 
 export const POLL_INTERVAL_MS = 1000;

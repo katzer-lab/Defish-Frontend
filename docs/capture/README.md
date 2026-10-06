@@ -1,12 +1,12 @@
 # Scripts that took the screenshots and the measurements
 
 Everything under `../media/` and `../measurements/` was produced by these scripts on 2026-10-04. They drive Chrome with [playwright-core](https://www.npmjs.com/package/playwright-core) (no browser is downloaded: it uses the Chrome that is installed)
-against a Vite dev server and the `fish-demo_backend` docker-compose stack with its **mock** inference service.
+against a Vite dev server and the `Defish-backend` docker-compose stack with its **mock** inference service.
 
 ```bash
 npm install --no-save playwright-core            # in this folder; node_modules is ignored by git
 
-# backend (in a checkout of fish-demo_backend; .env as in its README), boxes on the fish of the sample picture, 3 s for a "slow" file:
+# backend (in a checkout of Defish-backend; .env as in its README), boxes on the fish of the sample picture, 3 s for a "slow" file:
 MOCK_USE_LAYOUT=1 MOCK_DELAY_SECONDS=3 docker compose -f docker-compose.yml -f docs/examples/docker-compose.mock-ml.yml up -d --build
 
 # frontend (in the repository root)
